@@ -29,7 +29,8 @@ class MuestraBiologica(Base):
     estado_actual: Mapped["EstadoCatalogo"] = relationship()
     historial: Mapped[list["CambioEstado"]] = relationship(
         back_populates="muestra",
-        cascade="all, delete-orphan",
+        cascade="save-update, merge",
+        passive_deletes="all",
         order_by="CambioEstado.fecha_hora",
     )
 
