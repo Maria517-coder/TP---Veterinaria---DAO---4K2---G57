@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import Enum, Float, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Enum, ForeignKey, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config.database import Base
 from app.models.complejidad import Complejidad
+from app.models.importes import normalizar_importe
 
 
 class ConsultaMedica(Base):
@@ -22,7 +24,9 @@ class ConsultaMedica(Base):
     complejidad: Mapped[Complejidad] = mapped_column(
         Enum(Complejidad, native_enum=False, create_constraint=True, length=10)
     )
-    costo: Mapped[float] = mapped_column(Float, default=0.0)
+    costo: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2, asdecimal=True), default=Decimal("0.00")
+    )
 
     clinica: Mapped["ClinicaVeterinaria"] = relationship(back_populates="consultas")
     veterinario: Mapped["Veterinario"] = relationship()
@@ -30,6 +34,11 @@ class ConsultaMedica(Base):
     muestras: Mapped[list["MuestraBiologica"]] = relationship(
         back_populates="consulta", cascade="all, delete-orphan"
     )
+
+    @validates("costo")
+    def _normalizar_costo(self, _clave: str, valor: Decimal | str | int) -> Decimal:
+        """Normaliza el costo tanto al crear como al modificar la consulta."""
+        return normalizar_importe(valor)
 
     def registrar_muestra(self, tipo: "TipoMuestra", responsable: str) -> "MuestraBiologica":
         raise NotImplementedError("TODO: crear la muestra en estado Extraida y su primer CambioEstado")
@@ -43,5 +52,9 @@ class ConsultaMedica(Base):
     def imprimir_comprobante(self) -> None:
         raise NotImplementedError("TODO: generar el comprobante de atención imprimible")
 
-    def costo_total(self) -> float:
-        raise NotImplementedError("TODO: costo de la consulta más el costo de análisis de sus muestras")
+    def costo_total(self) -> Decimal:
+        """Suma el costo de atención y el análisis de cada muestra de la consulta."""
+        return self.costo + sum(
+            (muestra.tipo.costo_analisis for muestra in self.muestras),
+            Decimal("0.00"),
+        )

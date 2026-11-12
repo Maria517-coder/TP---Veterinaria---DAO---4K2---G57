@@ -1,4 +1,6 @@
 """Carga los datos que deben existir antes de usar el sistema."""
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,12 +19,12 @@ ESTADOS = (
 
 ESPECIES = ("PERRO", "GATO", "OTRO")
 
-TIPOS_MUESTRA: dict[str, float] = {
-    "SANGRE": 1500.0,
-    "ORINA": 1200.0,
-    "HECES": 1000.0,
-    "HISOPADO": 1800.0,
-    "TEJIDO": 2500.0,
+TIPOS_MUESTRA: dict[str, Decimal] = {
+    "SANGRE": Decimal("1500.00"),
+    "ORINA": Decimal("1200.00"),
+    "HECES": Decimal("1000.00"),
+    "HISOPADO": Decimal("1800.00"),
+    "TEJIDO": Decimal("2500.00"),
 }
 
 
