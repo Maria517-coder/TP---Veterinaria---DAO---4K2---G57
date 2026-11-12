@@ -1,0 +1,31 @@
+# Entornos virtuales
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Variables de entorno
+.env
+.env.*
+
+# SQLite
+*.sqlite
+*.sqlite3
+
+# Tests
+.pytest_cache/
+
+# Frontend
+node_modules/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

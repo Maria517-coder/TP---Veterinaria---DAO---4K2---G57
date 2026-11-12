@@ -1,0 +1,51 @@
+"""Punto de entrada: crea la app, registra routers y manejadores de errores."""
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from app.config.database import crear_tablas
+from app.config.settings import settings
+from app.middlewares.cors import configurar_cors
+from app.middlewares.manejadores_errores import registrar_manejadores
+from app.routers import (
+    clientes,
+    clinicas,
+    consultas,
+    contenedores,
+    mascotas,
+    muestras,
+    remitos,
+    reportes,
+    turnos,
+)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    crear_tablas()
+    yield
+
+
+app = FastAPI(title=settings.nombre_app, lifespan=lifespan)
+
+configurar_cors(app)
+registrar_manejadores(app)
+
+for modulo in (
+    clientes,
+    mascotas,
+    clinicas,
+    turnos,
+    consultas,
+    muestras,
+    contenedores,
+    remitos,
+    reportes,
+):
+    app.include_router(modulo.router, prefix="/api")
+
+
+@app.get("/api/health", tags=["Salud"])
+def health() -> dict[str, str]:
+    return {"estado": "ok"}
