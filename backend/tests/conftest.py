@@ -6,9 +6,11 @@ os.environ["DATABASE_URL"] = "sqlite:///./test_veterinaria.sqlite"
 from collections.abc import Generator  # noqa: E402
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.config.database import Base, SessionLocal, crear_tablas, engine  # noqa: E402
+from app.main import app  # noqa: E402
 
 
 @pytest.fixture()
@@ -24,3 +26,10 @@ def db() -> Generator[Session, None, None]:
         sesion.rollback()
         sesion.close()
         Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def client(db: Session) -> Generator[TestClient, None, None]:
+    """Cliente HTTP contra la app real, con la base de test limpia por test."""
+    with TestClient(app) as cliente:
+        yield cliente

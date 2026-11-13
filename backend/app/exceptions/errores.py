@@ -23,3 +23,7 @@ class TurnoSuperpuesto(ErrorDeDominio):
 
 class ReglaDeNegocioViolada(ErrorDeDominio):
     """Se incumple una regla de negocio de la consigna (HTTP 422)."""
+
+
+class ConflictoDeRecurso(ErrorDeDominio):
+    """La operación choca con el estado actual del recurso (HTTP 409)."""
