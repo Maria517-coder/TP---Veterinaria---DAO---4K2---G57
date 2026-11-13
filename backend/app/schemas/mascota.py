@@ -46,3 +46,13 @@ class MascotaRespuesta(BaseModel):
     nombre: str
     fecha_nacimiento: date
     activo: bool
+
+
+class HistoriaClinicaRespuesta(BaseModel):
+    """Identificación de la historia clínica asociada a una mascota."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    mascota_id: int
+    numero: int

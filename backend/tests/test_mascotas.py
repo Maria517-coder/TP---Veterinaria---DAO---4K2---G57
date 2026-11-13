@@ -55,6 +55,43 @@ def _assert_error_de_dominio(respuesta: Response, codigo: int) -> None:
     assert "detalle" in respuesta.json()
 
 
+def test_obtener_historia_clinica(client: TestClient, db: Session) -> None:
+    """GET devuelve la historia creada junto con la mascota solicitada."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    historia = db.scalar(
+        select(HistoriaClinica).where(HistoriaClinica.mascota_id == mascota["id"])
+    )
+    assert historia is not None
+
+    respuesta = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica")
+
+    assert respuesta.status_code == 200
+    assert respuesta.json() == {
+        "id": historia.id,
+        "mascota_id": mascota["id"],
+        "numero": historia.numero,
+    }
+
+
+def test_historia_clinica_de_mascota_inexistente(client: TestClient) -> None:
+    """GET informa el error de dominio cuando la mascota no existe."""
+    respuesta = client.get("/api/mascotas/999999/historia-clinica")
+
+    _assert_error_de_dominio(respuesta, 404)
+
+
+def test_historia_clinica_de_mascota_inactiva(client: TestClient, db: Session) -> None:
+    """GET respeta la baja lógica usada para consultar mascotas."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    assert client.delete(f"/api/mascotas/{mascota['id']}").status_code == 204
+
+    respuesta = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica")
+
+    _assert_error_de_dominio(respuesta, 404)
+
+
 def test_crear_mascota(client: TestClient, db: Session) -> None:
     """POST crea la mascota, su historia clínica y las relaciona por número."""
     duenio = _crear_cliente(client)

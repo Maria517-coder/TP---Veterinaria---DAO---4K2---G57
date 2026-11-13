@@ -59,6 +59,10 @@ class MascotaService:
             raise RecursoNoEncontrado(f"No existe la mascota {mascota_id}")
         return mascota
 
+    def obtener_historia_clinica(self, mascota_id: int) -> HistoriaClinica:
+        """Devuelve la historia clínica de una mascota activa."""
+        return self.obtener(mascota_id).historia_clinica
+
     def actualizar(self, mascota_id: int, datos: MascotaActualizar) -> Mascota:
         """Reemplaza responsable, especie, nombre y fecha de nacimiento."""
         mascota = self.obtener(mascota_id)

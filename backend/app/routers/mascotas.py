@@ -4,8 +4,14 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
+from app.models.historia_clinica import HistoriaClinica
 from app.models.mascota import Mascota
-from app.schemas.mascota import MascotaActualizar, MascotaCrear, MascotaRespuesta
+from app.schemas.mascota import (
+    HistoriaClinicaRespuesta,
+    MascotaActualizar,
+    MascotaCrear,
+    MascotaRespuesta,
+)
 from app.services.mascota_service import MascotaService
 
 router = APIRouter(tags=["Mascotas"])
@@ -57,3 +63,13 @@ def actualizar_mascota(
 def eliminar_mascota(mascota_id: int, db: Session = Depends(get_db)) -> None:
     """E11: da de baja lógica una mascota."""
     MascotaService(db).eliminar(mascota_id)
+
+
+@router.get(
+    "/mascotas/{mascota_id}/historia-clinica", response_model=HistoriaClinicaRespuesta
+)
+def obtener_historia_clinica(
+    mascota_id: int, db: Session = Depends(get_db)
+) -> HistoriaClinica:
+    """E12: devuelve la historia clínica de una mascota activa."""
+    return MascotaService(db).obtener_historia_clinica(mascota_id)
