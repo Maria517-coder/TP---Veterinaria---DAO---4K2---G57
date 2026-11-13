@@ -1,4 +1,6 @@
 """Seeds: carga de catálogos iniciales e idempotencia."""
+from decimal import Decimal
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -19,11 +21,11 @@ ESTADOS_ESPERADOS = {
 ESPECIES_ESPERADAS = {"PERRO", "GATO", "OTRO"}
 
 TIPOS_ESPERADOS = {
-    "SANGRE": 1500.0,
-    "ORINA": 1200.0,
-    "HECES": 1000.0,
-    "HISOPADO": 1800.0,
-    "TEJIDO": 2500.0,
+    "SANGRE": Decimal("1500.00"),
+    "ORINA": Decimal("1200.00"),
+    "HECES": Decimal("1000.00"),
+    "HISOPADO": Decimal("1800.00"),
+    "TEJIDO": Decimal("2500.00"),
 }
 
 
@@ -46,6 +48,8 @@ def test_seed_carga_los_catalogos(db: Session) -> None:
     assert estados == ESTADOS_ESPERADOS
     assert especies == ESPECIES_ESPERADAS
     assert tipos == TIPOS_ESPERADOS
+    assert all(isinstance(costo, Decimal) for costo in tipos.values())
+    assert all(costo.as_tuple().exponent == -2 for costo in tipos.values())
 
 
 def test_seed_es_idempotente(db: Session) -> None:
@@ -56,3 +60,14 @@ def test_seed_es_idempotente(db: Session) -> None:
     assert _contar(db, EstadoCatalogo) == len(ESTADOS_ESPERADOS)
     assert _contar(db, Especie) == len(ESPECIES_ESPERADAS)
     assert _contar(db, TipoMuestra) == len(TIPOS_ESPERADOS)
+
+
+def test_seed_respeta_rollback_del_llamador(db: Session) -> None:
+    """La carga no confirma ni siquiera los cambios previos del llamador."""
+    db.add(Especie(nombre="PRUEBA"))
+    cargar_datos_iniciales(db)
+    db.rollback()
+
+    assert _contar(db, EstadoCatalogo) == 0
+    assert _contar(db, Especie) == 0
+    assert _contar(db, TipoMuestra) == 0

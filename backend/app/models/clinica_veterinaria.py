@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -20,8 +21,21 @@ class ClinicaVeterinaria(Base):
     veterinarios: Mapped[list["Veterinario"]] = relationship(back_populates="clinica")
     consultas: Mapped[list["ConsultaMedica"]] = relationship(back_populates="clinica")
 
-    def facturacion_total_clinica(self, desde: date, hasta: date) -> float:
-        raise NotImplementedError("TODO: sumar el costo de las consultas del período")
+    def facturacion_total_clinica(self, desde: date, hasta: date) -> Decimal:
+        """Suma las atenciones por fecha de consulta, incluidos ambos límites."""
+        return sum(
+            (consulta.costo for consulta in self.consultas if desde <= consulta.fecha <= hasta),
+            Decimal("0.00"),
+        )
 
-    def facturacion_total_laboratorio(self, desde: date, hasta: date) -> float:
-        raise NotImplementedError("TODO: sumar el costo de análisis de las muestras del período")
+    def facturacion_total_laboratorio(self, desde: date, hasta: date) -> Decimal:
+        """Suma los análisis por fecha de consulta, incluidos ambos límites."""
+        return sum(
+            (
+                muestra.tipo.costo_analisis
+                for consulta in self.consultas
+                if desde <= consulta.fecha <= hasta
+                for muestra in consulta.muestras
+            ),
+            Decimal("0.00"),
+        )
