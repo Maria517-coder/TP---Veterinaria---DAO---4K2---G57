@@ -1,8 +1,10 @@
 """Schemas de Pydantic del módulo Mascotas."""
 from datetime import date
+from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from app.models.complejidad import Complejidad
 
 Nombre = Annotated[
     str,
@@ -46,3 +48,28 @@ class MascotaRespuesta(BaseModel):
     nombre: str
     fecha_nacimiento: date
     activo: bool
+
+
+class HistoriaClinicaRespuesta(BaseModel):
+    """Identificación de la historia clínica asociada a una mascota."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    mascota_id: int
+    numero: int
+
+
+class ConsultaHistoriaRespuesta(BaseModel):
+    """Datos de una consulta registrada en la historia clínica."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    numero: int
+    clinica_id: int
+    veterinario_id: int
+    mascota_id: int
+    fecha: date
+    complejidad: Complejidad
+    costo: Decimal

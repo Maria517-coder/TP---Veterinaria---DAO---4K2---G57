@@ -7,6 +7,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
+from app.models.aplicacion_vacuna import AplicacionVacuna
 
 
 class HistoriaClinica(Base):
@@ -27,10 +28,19 @@ class HistoriaClinica(Base):
         return self.mascota.consultas
 
     def registrar_vacunacion(self, vacuna: "Vacuna", fecha: date) -> None:
-        raise NotImplementedError("TODO: crear la AplicacionVacuna y agregarla")
+        """Agrega a la historia el hecho de aplicación de una vacuna."""
+        self.aplicaciones.append(AplicacionVacuna(vacuna=vacuna, fecha=fecha))
 
     def vacunas_pendientes(self) -> list["Vacuna"]:
-        raise NotImplementedError("TODO: obligatorias de la especie menos las aplicadas")
+        """Devuelve las obligatorias de la especie que aún no fueron aplicadas."""
+        aplicadas = {aplicacion.vacuna for aplicacion in self.aplicaciones}
+        return [
+            vacuna for vacuna in self.mascota.especie.vacunas
+            if vacuna.obligatoria and vacuna not in aplicadas
+        ]
 
-    def imprimir_carnet_vacunas(self) -> None:
-        raise NotImplementedError("TODO: generar el carnet de vacunas imprimible")
+    def imprimir_carnet_vacunas(self) -> bytes:
+        """Devuelve el carnet en PDF delegando su presentación."""
+        from app.reportes.carnet_vacunas import generar_carnet
+
+        return generar_carnet(self)

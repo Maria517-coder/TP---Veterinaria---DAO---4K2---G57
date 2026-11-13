@@ -1,5 +1,6 @@
 """CRUD de mascotas de punta a punta por HTTP."""
 import pytest
+from datetime import date
 from fastapi.testclient import TestClient
 from httpx import Response
 from sqlalchemy import select
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.models.especie import Especie
 from app.models.historia_clinica import HistoriaClinica
 from app.models.mascota import Mascota
+from app.models import ClinicaVeterinaria, ConsultaMedica, RedVeterinaria, Veterinario
+from app.models.complejidad import Complejidad
 
 
 def _crear_cliente(
@@ -53,6 +56,84 @@ def _assert_error_de_dominio(respuesta: Response, codigo: int) -> None:
     """Comprueba el código y el formato de error propio: {"detalle": "..."}."""
     assert respuesta.status_code == codigo, respuesta.text
     assert "detalle" in respuesta.json()
+
+
+def test_obtener_historia_clinica(client: TestClient, db: Session) -> None:
+    """GET devuelve la historia creada junto con la mascota solicitada."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    historia = db.scalar(
+        select(HistoriaClinica).where(HistoriaClinica.mascota_id == mascota["id"])
+    )
+    assert historia is not None
+
+    respuesta = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica")
+
+    assert respuesta.status_code == 200
+    assert respuesta.json() == {
+        "id": historia.id,
+        "mascota_id": mascota["id"],
+        "numero": historia.numero,
+    }
+
+
+def test_historia_clinica_de_mascota_inexistente(client: TestClient) -> None:
+    """GET informa el error de dominio cuando la mascota no existe."""
+    respuesta = client.get("/api/mascotas/999999/historia-clinica")
+
+    _assert_error_de_dominio(respuesta, 404)
+
+
+def test_historia_clinica_de_mascota_inactiva(client: TestClient, db: Session) -> None:
+    """GET respeta la baja lógica usada para consultar mascotas."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    assert client.delete(f"/api/mascotas/{mascota['id']}").status_code == 204
+
+    respuesta = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica")
+
+    _assert_error_de_dominio(respuesta, 404)
+
+
+def test_listar_consultas_de_historia_vacia(client: TestClient, db: Session) -> None:
+    """Una historia existente sin atenciones devuelve una lista vacía."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    historia = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica").json()
+    respuesta = client.get(f"/api/historias-clinicas/{historia['id']}/consultas")
+    assert respuesta.status_code == 200
+    assert respuesta.json() == []
+
+
+def test_consultas_de_historia_inexistente(client: TestClient) -> None:
+    """Una historia inexistente produce el error de dominio 404."""
+    respuesta = client.get("/api/historias-clinicas/999999/consultas")
+    _assert_error_de_dominio(respuesta, 404)
+
+
+def test_consultas_corresponden_a_la_historia(client: TestClient, db: Session) -> None:
+    """E13 devuelve los datos guardados y excluye consultas de otra mascota."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    otra = _crear_mascota(client, duenio["id"], _especie_id(db), nombre="Sol")
+    historia = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica").json()
+    clinica = ClinicaVeterinaria(nombre="Central", red=RedVeterinaria(nombre="Red"))
+    veterinario = Veterinario(nombre="Ana", matricula="MAT-1", clinica=clinica)
+    consultas = [
+        ConsultaMedica(numero=numero, clinica=clinica, veterinario=veterinario,
+                       mascota_id=datos["id"], fecha=date(2026, 1, 1),
+                       complejidad=Complejidad.BAJA, costo="100.00")
+        for numero, datos in enumerate([mascota, otra], start=1)
+    ]
+    db.add_all(consultas)
+    db.commit()
+    respuesta = client.get(f"/api/historias-clinicas/{historia['id']}/consultas")
+    assert respuesta.status_code == 200
+    assert respuesta.json() == [{
+        "id": consultas[0].id, "numero": 1, "clinica_id": clinica.id,
+        "veterinario_id": veterinario.id, "mascota_id": mascota["id"],
+        "fecha": "2026-01-01", "complejidad": "BAJA", "costo": "100.00",
+    }]
 
 
 def test_crear_mascota(client: TestClient, db: Session) -> None:

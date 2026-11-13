@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
 
@@ -12,3 +12,7 @@ class Especie(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(50), unique=True)
+
+    vacunas: Mapped[list["Vacuna"]] = relationship(
+        secondary="vacuna_especie", back_populates="especies_aplicables"
+    )
