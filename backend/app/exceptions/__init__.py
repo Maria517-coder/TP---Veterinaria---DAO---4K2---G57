@@ -1,5 +1,6 @@
 """Errores del dominio."""
 from app.exceptions.errores import (
+    ConflictoDeRecurso,
     ErrorDeDominio,
     RecursoNoEncontrado,
     ReglaDeNegocioViolada,
@@ -8,6 +9,7 @@ from app.exceptions.errores import (
 )
 
 __all__ = [
+    "ConflictoDeRecurso",
     "ErrorDeDominio",
     "RecursoNoEncontrado",
     "ReglaDeNegocioViolada",
