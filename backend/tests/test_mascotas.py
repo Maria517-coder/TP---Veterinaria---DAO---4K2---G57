@@ -117,7 +117,8 @@ def test_consultas_corresponden_a_la_historia(client: TestClient, db: Session) -
     mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
     otra = _crear_mascota(client, duenio["id"], _especie_id(db), nombre="Sol")
     historia = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica").json()
-    clinica = ClinicaVeterinaria(nombre="Central", red=RedVeterinaria(nombre="Red"))
+    red = db.scalars(select(RedVeterinaria)).one()
+    clinica = ClinicaVeterinaria(nombre="Central", red=red)
     veterinario = Veterinario(nombre="Ana", matricula="MAT-1", clinica=clinica)
     consultas = [
         ConsultaMedica(numero=numero, clinica=clinica, veterinario=veterinario,
