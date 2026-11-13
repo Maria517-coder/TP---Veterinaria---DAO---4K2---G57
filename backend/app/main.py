@@ -26,7 +26,8 @@ from app.seeds.datos_iniciales import cargar_datos_iniciales
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     crear_tablas()
     with SessionLocal() as db:
-        cargar_datos_iniciales(db)
+        with db.begin():
+            cargar_datos_iniciales(db)
     yield
 
 
