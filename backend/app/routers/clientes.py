@@ -42,6 +42,3 @@ def actualizar_cliente(
 def eliminar_cliente(cliente_id: int, db: Session = Depends(get_db)) -> None:
     """Da de baja lógica un cliente."""
     ClienteService(db).eliminar(cliente_id)
-
-
-# TODO GET /clientes/{id}/mascotas: lo resuelve el módulo Mascotas.

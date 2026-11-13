@@ -93,6 +93,26 @@ def test_tiene_mascotas_es_verdadero_si_hay_una(db: Session) -> None:
     assert ClienteRepository(db).tiene_mascotas(cliente.id) is True
 
 
+def test_tiene_mascotas_ignora_las_inactivas(db: Session) -> None:
+    """Una mascota dada de baja ya no cuenta para bloquear al cliente."""
+    cliente = _crear_cliente(db)
+    especie = Especie(nombre="PERRO")
+    db.add(especie)
+    db.flush()
+    db.add(
+        Mascota(
+            cliente_id=cliente.id,
+            especie_id=especie.id,
+            nombre="Luna",
+            fecha_nacimiento=date(2020, 1, 1),
+            activo=False,
+        )
+    )
+    db.commit()
+
+    assert ClienteRepository(db).tiene_mascotas(cliente.id) is False
+
+
 def test_tiene_mascotas_es_falso_sin_mascotas_propias(db: Session) -> None:
     """Las mascotas de otro cliente no cuentan."""
     con_mascota = _crear_cliente(db, "Ana")

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
@@ -17,6 +17,7 @@ class Mascota(Base):
     especie_id: Mapped[int] = mapped_column(ForeignKey("especie.id"))
     nombre: Mapped[str] = mapped_column(String(100))
     fecha_nacimiento: Mapped[date]
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
     responsable: Mapped["Cliente"] = relationship(back_populates="mascotas")
     especie: Mapped["Especie"] = relationship()

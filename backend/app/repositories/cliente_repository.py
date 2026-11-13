@@ -32,10 +32,12 @@ class ClienteRepository:
         return cliente
 
     def tiene_mascotas(self, cliente_id: int) -> bool:
-        """Indica si el cliente tiene al menos una mascota registrada."""
+        """Indica si el cliente tiene al menos una mascota activa."""
         return (
             self.db.scalar(
-                select(Mascota.id).where(Mascota.cliente_id == cliente_id).limit(1)
+                select(Mascota.id)
+                .where(Mascota.cliente_id == cliente_id, Mascota.activo.is_(True))
+                .limit(1)
             )
             is not None
         )
