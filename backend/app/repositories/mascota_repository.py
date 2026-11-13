@@ -45,3 +45,7 @@ class MascotaRepository:
     def buscar_especie(self, especie_id: int) -> Especie | None:
         """Devuelve la especie con ese id, o None si no existe."""
         return self.db.get(Especie, especie_id)
+
+    def buscar_historia(self, historia_id: int) -> HistoriaClinica | None:
+        """Busca una historia por su identificador."""
+        return self.db.get(HistoriaClinica, historia_id)

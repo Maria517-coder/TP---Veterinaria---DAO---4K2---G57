@@ -21,4 +21,6 @@ class Vacuna(Base):
     nombre: Mapped[str] = mapped_column(String(100), unique=True)
     obligatoria: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    especies_aplicables: Mapped[list["Especie"]] = relationship(secondary=vacuna_especie)
+    especies_aplicables: Mapped[list["Especie"]] = relationship(
+        secondary=vacuna_especie, back_populates="vacunas"
+    )

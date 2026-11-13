@@ -5,16 +5,36 @@ from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.historia_clinica import HistoriaClinica
+from app.models.consulta_medica import ConsultaMedica
 from app.models.mascota import Mascota
 from app.schemas.mascota import (
+    ConsultaHistoriaRespuesta,
     HistoriaClinicaRespuesta,
     MascotaActualizar,
     MascotaCrear,
     MascotaRespuesta,
 )
 from app.services.mascota_service import MascotaService
+from app.models.vacuna import Vacuna
+from app.models.aplicacion_vacuna import AplicacionVacuna
+from app.schemas.vacuna import VacunaCrear, VacunaRespuesta, VacunacionCrear, VacunacionRespuesta
+from app.services.vacuna_service import VacunaService
 
 router = APIRouter(tags=["Mascotas"])
+
+
+@router.post("/vacunas", response_model=VacunaRespuesta, status_code=status.HTTP_201_CREATED)
+def crear_vacuna(datos: VacunaCrear, db: Session = Depends(get_db)) -> Vacuna:
+    """E14: incorpora una vacuna al catálogo."""
+    return VacunaService(db).crear(datos)
+
+
+@router.get("/vacunas", response_model=list[VacunaRespuesta])
+def listar_vacunas(
+    especie_id: int | None = None, db: Session = Depends(get_db)
+) -> list[Vacuna]:
+    """E15: lista vacunas, con filtro opcional de especie."""
+    return VacunaService(db).listar(especie_id)
 
 
 @router.get(
@@ -73,3 +93,47 @@ def obtener_historia_clinica(
 ) -> HistoriaClinica:
     """E12: devuelve la historia clínica de una mascota activa."""
     return MascotaService(db).obtener_historia_clinica(mascota_id)
+
+
+@router.get(
+    "/historias-clinicas/{historia_id}/consultas",
+    response_model=list[ConsultaHistoriaRespuesta],
+)
+def listar_consultas_de_historia(
+    historia_id: int, db: Session = Depends(get_db)
+) -> list[ConsultaMedica]:
+    """E13: lista las consultas de la historia clínica."""
+    return MascotaService(db).listar_consultas(historia_id)
+
+
+@router.post(
+    "/historias-clinicas/{historia_id}/vacunaciones",
+    response_model=VacunacionRespuesta, status_code=status.HTTP_201_CREATED,
+)
+def registrar_vacunacion(
+    historia_id: int, datos: VacunacionCrear, db: Session = Depends(get_db)
+) -> AplicacionVacuna:
+    """E16: registra una vacuna aplicada en la historia."""
+    return MascotaService(db).registrar_vacunacion(historia_id, datos)
+
+
+@router.get(
+    "/historias-clinicas/{historia_id}/vacunaciones",
+    response_model=list[VacunacionRespuesta],
+)
+def listar_vacunaciones(
+    historia_id: int, db: Session = Depends(get_db)
+) -> list[AplicacionVacuna]:
+    """E17: lista las aplicaciones de la historia."""
+    return MascotaService(db).listar_vacunaciones(historia_id)
+
+
+@router.get(
+    "/historias-clinicas/{historia_id}/vacunas-pendientes",
+    response_model=list[VacunaRespuesta],
+)
+def listar_vacunas_pendientes(
+    historia_id: int, db: Session = Depends(get_db)
+) -> list[Vacuna]:
+    """E18: consulta las vacunas obligatorias pendientes."""
+    return MascotaService(db).vacunas_pendientes(historia_id)
