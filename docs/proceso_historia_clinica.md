@@ -116,4 +116,38 @@ advertencia de deprecación de Starlette sobre httpx, ya presente antes de estos
 5. Consultar vacunaciones para ver el registro y pendientes para comprobar que
    la vacuna aplicada dejó de aparecer.
 
-El carnet imprimible E19 queda como siguiente paso del bloque B.
+## E19 — Carnet PDF
+
+Se aprobó generar PDF e incorporar ReportLab. Se fijó `reportlab==5.1.0` y
+sus dependencias instaladas Pillow y charset-normalizer en requirements.txt.
+Para instalar en otra máquina, ejecutar desde backend
+`.\.venv\Scripts\python.exe -m pip install -r requirements.txt`.
+
+`GET /api/mascotas/{mascota_id}/carnet-vacunas` descarga un PDF con nombre
+`carnet-vacunas-{mascota_id}.pdf`. Incluye número de historia, nombre, especie
+y nacimiento de la mascota, nombre y teléfono del responsable, vacunas aplicadas
+y fechas en orden cronológico. Una historia vacía muestra “Sin vacunas registradas.”
+
+El router devuelve bytes con `application/pdf` y encabezado de descarga.
+El servicio reutiliza la búsqueda de mascotas activas. El método del modelo
+`imprimir_carnet_vacunas()` ahora devuelve bytes y delega el diseño en
+`reportes/carnet_vacunas.py`. Este generador de presentación es independiente
+de los reportes estadísticos E61–E65 y su patrón Template Method.
+
+El documento se construye en memoria. Los valores de texto se escapan antes de
+pasarlos a los párrafos de ReportLab. La tabla ajusta nombres largos, continúa
+en páginas sucesivas y repite el encabezado.
+
+Las tres pruebas HTTP fallaron inicialmente por ruta inexistente. Después
+pasaron la descarga, mascota inexistente y mascota inactiva. La suite completa
+finalizó con 215 pruebas aprobadas en 61,82 segundos y la advertencia previa de
+Starlette. Se verificaron Uvicorn, Swagger y el tipo PDF documentado en OpenAPI.
+
+Se extrajo el contenido de ejemplos vacío, normal y extenso. El ejemplo de
+90 filas adicionales produjo seis páginas y conservó todas las aplicaciones,
+los acentos y los encabezados. Se revisaron visualmente el ejemplo normal y
+una página de continuación con nombres largos.
+
+Para probar, abrir `/docs`, elegir E19 y proporcionar el id de una mascota
+activa. La respuesta permite descargar el carnet. Con esto están implementados
+los ocho endpoints del bloque B, E12–E19.

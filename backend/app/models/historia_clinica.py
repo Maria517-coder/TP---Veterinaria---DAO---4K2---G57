@@ -39,5 +39,8 @@ class HistoriaClinica(Base):
             if vacuna.obligatoria and vacuna not in aplicadas
         ]
 
-    def imprimir_carnet_vacunas(self) -> None:
-        raise NotImplementedError("TODO: generar el carnet de vacunas imprimible")
+    def imprimir_carnet_vacunas(self) -> bytes:
+        """Devuelve el carnet en PDF delegando su presentación."""
+        from app.reportes.carnet_vacunas import generar_carnet
+
+        return generar_carnet(self)

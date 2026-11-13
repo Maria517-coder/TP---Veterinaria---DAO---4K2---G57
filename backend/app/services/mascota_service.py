@@ -68,6 +68,10 @@ class MascotaService:
         """Devuelve la historia clínica de una mascota activa."""
         return self.obtener(mascota_id).historia_clinica
 
+    def obtener_carnet(self, mascota_id: int) -> bytes:
+        """Genera el carnet de vacunación de una mascota activa."""
+        return self.obtener_historia_clinica(mascota_id).imprimir_carnet_vacunas()
+
     def obtener_historia_por_id(self, historia_id: int) -> HistoriaClinica:
         """Busca una historia clínica o informa que no existe."""
         historia = self.repository.buscar_historia(historia_id)

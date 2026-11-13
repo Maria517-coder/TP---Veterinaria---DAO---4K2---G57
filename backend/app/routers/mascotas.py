@@ -1,6 +1,7 @@
 """Rutas del módulo Mascotas.
 Este módulo agrupa varios recursos: no tiene prefijo y las rutas se declaran completas."""
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
@@ -21,6 +22,21 @@ from app.schemas.vacuna import VacunaCrear, VacunaRespuesta, VacunacionCrear, Va
 from app.services.vacuna_service import VacunaService
 
 router = APIRouter(tags=["Mascotas"])
+
+
+@router.get(
+    "/mascotas/{mascota_id}/carnet-vacunas", response_class=Response,
+    responses={200: {"content": {"application/pdf": {"schema": {
+        "type": "string", "format": "binary",
+    }}}}},
+)
+def descargar_carnet(mascota_id: int, db: Session = Depends(get_db)) -> Response:
+    """E19: descarga el carnet de vacunación en PDF."""
+    contenido = MascotaService(db).obtener_carnet(mascota_id)
+    return Response(
+        content=contenido, media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=carnet-vacunas-{mascota_id}.pdf"},
+    )
 
 
 @router.post("/vacunas", response_model=VacunaRespuesta, status_code=status.HTTP_201_CREATED)
