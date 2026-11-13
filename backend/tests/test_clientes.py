@@ -178,3 +178,23 @@ def test_eliminar_cliente_con_mascotas_da_409(client: TestClient, db: Session) -
     respuesta = client.delete(f"/api/clientes/{creado['id']}")
 
     _assert_error_de_dominio(respuesta, 409)
+
+
+def test_eliminar_cliente_con_mascotas_inactivas_da_204(
+    client: TestClient, db: Session
+) -> None:
+    """Las mascotas dadas de baja ya no bloquean la baja del cliente."""
+    creado = _crear(client)
+    especie = db.scalar(select(Especie).where(Especie.nombre == "PERRO"))
+    assert especie is not None
+    mascota = Mascota(
+        cliente_id=creado["id"],
+        especie_id=especie.id,
+        nombre="Luna",
+        fecha_nacimiento=date(2020, 1, 1),
+    )
+    db.add(mascota)
+    db.commit()
+
+    assert client.delete(f"/api/mascotas/{mascota.id}").status_code == 204
+    assert client.delete(f"/api/clientes/{creado['id']}").status_code == 204
