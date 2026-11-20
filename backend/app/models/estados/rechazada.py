@@ -6,4 +6,5 @@ class Rechazada(Estado):
     nombre = "Rechazada"
 
     def puede_pasar_a(self, otro: Estado) -> bool:
-        raise NotImplementedError("TODO: desde Rechazada se puede pasar a: ninguno (estado final)")
+        """Rechazada es un estado final: no tiene transiciones salientes."""
+        return False
