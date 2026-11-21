@@ -7,10 +7,14 @@ from sqlalchemy import ForeignKey, String, select
 from sqlalchemy.orm import Mapped, mapped_column, object_session, relationship
 
 from app.config.database import Base
-from app.exceptions import ReglaDeNegocioViolada, TransicionInvalida
+from app.exceptions import (
+    ConflictoDeRecurso,
+    ReglaDeNegocioViolada,
+    TransicionInvalida,
+)
 from app.models.cambio_estado import CambioEstado
 from app.models.estado_catalogo import EstadoCatalogo
-from app.models.estados import Recibida, estado_desde_nombre
+from app.models.estados import Analizada, Recibida, estado_desde_nombre
 from app.models.estados.estado import Estado
 
 
@@ -74,13 +78,31 @@ class MuestraBiologica(Base):
         sesion.add(registro)
 
     def registrar_resultado(self, texto: str, responsable: str) -> None:
-        raise NotImplementedError(
-            "TODO: exigir puede_procesarse(), guardar el resultado, pasar a Analizada y cerrar el remito si corresponde"
-        )
+        """Guarda el resultado de una muestra Recibida y la pasa a Analizada."""
+        if not self.puede_procesarse():
+            raise ConflictoDeRecurso(
+                "Solo se puede registrar el resultado de una muestra Recibida"
+            )
+        self.resultado = texto
+        self.fecha_resultado = datetime.now().date()
+        self.cambiar_estado(Analizada(), responsable)
 
     def puede_procesarse(self) -> bool:
         """Solo se procesa una muestra Recibida, es decir, con precinto intacto."""
         return isinstance(self.estado, Recibida)
 
     def tiempo_procesamiento(self) -> float:
-        raise NotImplementedError("TODO: diferencia entre los registros Recibida y Analizada del historial")
+        """Devuelve en segundos la diferencia entre Recibida y Analizada."""
+        recibida = next(
+            (registro for registro in self.historial if registro.estado.nombre == "Recibida"),
+            None,
+        )
+        analizada = next(
+            (registro for registro in self.historial if registro.estado.nombre == "Analizada"),
+            None,
+        )
+        if recibida is None or analizada is None:
+            raise ReglaDeNegocioViolada(
+                "El historial necesita los registros Recibida y Analizada"
+            )
+        return (analizada.fecha_hora - recibida.fecha_hora).total_seconds()

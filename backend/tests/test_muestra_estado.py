@@ -1,12 +1,16 @@
 """Cambios de estado de una muestra: validación, historial y procesamiento."""
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.exceptions import ReglaDeNegocioViolada, TransicionInvalida
+from app.exceptions import (
+    ConflictoDeRecurso,
+    ReglaDeNegocioViolada,
+    TransicionInvalida,
+)
 from app.models import (
     CambioEstado,
     Cliente,
@@ -159,3 +163,83 @@ def test_puede_procesarse_solo_en_recibida(
     db.flush()
 
     assert muestra.puede_procesarse() is esperado
+
+
+def _llevar_a_recibida(muestra: MuestraBiologica) -> None:
+    """Recorre el ciclo válido hasta Recibida sin persistir los registros todavía."""
+    muestra.cambiar_estado(Empaquetada(), "Eva")
+    muestra.cambiar_estado(EnTransito(), "Eva")
+    muestra.cambiar_estado(Recibida(), "Eva")
+
+
+def test_registrar_resultado_guarda_el_dato_pasa_a_analizada_y_deja_huella(
+    db: Session, muestra: MuestraBiologica
+) -> None:
+    """El resultado se guarda con fecha de hoy y dispara la transición a Analizada."""
+    _llevar_a_recibida(muestra)
+    hoy = datetime.now().date()
+
+    muestra.registrar_resultado("Negativo", "Luis")
+    db.flush()
+
+    assert muestra.resultado == "Negativo"
+    assert muestra.fecha_resultado == hoy
+    assert isinstance(muestra.estado, Analizada)
+    assert [registro.estado.nombre for registro in muestra.historial][-2:] == [
+        "Recibida",
+        "Analizada",
+    ]
+    ultimo = muestra.historial[-1]
+    assert ultimo.responsable == "Luis"
+    assert db.scalar(select(func.count()).select_from(CambioEstado)) == 4
+
+
+def test_registrar_resultado_no_hace_commit(db: Session, muestra: MuestraBiologica) -> None:
+    """El modelo no confirma: si falla el caso de uso, se puede revertir todo."""
+    _llevar_a_recibida(muestra)
+
+    muestra.registrar_resultado("Negativo", "Luis")
+    db.rollback()
+    db.refresh(muestra)
+
+    assert muestra.resultado is None
+    assert muestra.fecha_resultado is None
+    assert isinstance(muestra.estado, Extraida)
+    assert db.scalar(select(func.count()).select_from(CambioEstado)) == 0
+
+
+def test_registrar_resultado_rechaza_una_muestra_que_no_esta_recibida(
+    db: Session, muestra: MuestraBiologica
+) -> None:
+    """No se muta nada si se intenta procesar una muestra todavía no recibida."""
+    with pytest.raises(ConflictoDeRecurso, match="Recibida"):
+        muestra.registrar_resultado("Negativo", "Luis")
+
+    assert muestra.resultado is None
+    assert muestra.fecha_resultado is None
+    assert isinstance(muestra.estado, Extraida)
+    assert muestra.historial == []
+
+
+def test_tiempo_procesamiento_usa_los_registros_recibida_y_analizada(
+    db: Session, muestra: MuestraBiologica
+) -> None:
+    """El tiempo de proceso es la diferencia entre ambos registros, en segundos."""
+    _llevar_a_recibida(muestra)
+    recibida = muestra.historial[-1]
+    recibida.fecha_hora = datetime.now() - timedelta(seconds=90)
+
+    muestra.registrar_resultado("Negativo", "Luis")
+    analizada = muestra.historial[-1]
+    analizada.fecha_hora = recibida.fecha_hora + timedelta(seconds=90)
+    db.flush()
+
+    assert muestra.tiempo_procesamiento() == pytest.approx(90.0, abs=1.0)
+
+
+def test_tiempo_procesamiento_sin_historial_completo_avisa(
+    db: Session, muestra: MuestraBiologica
+) -> None:
+    """Sin los dos registros no se puede calcular: se avisa con claridad."""
+    with pytest.raises(ReglaDeNegocioViolada, match="Recibida.*Analizada"):
+        muestra.tiempo_procesamiento()
