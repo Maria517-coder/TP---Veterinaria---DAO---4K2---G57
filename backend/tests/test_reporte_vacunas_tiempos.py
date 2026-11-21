@@ -1,5 +1,6 @@
 """E63 y E65: vacunas pendientes y tiempos promedio en segundos."""
 from datetime import date, datetime, time, timedelta
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy import select
@@ -259,6 +260,43 @@ def test_service_tiempos_sin_datos_devuelve_ceros(db: Session, datos: dict) -> N
 
     assert respuesta.filas == []
     assert respuesta.totales == {TRANSITO: 0.0, PROCESAMIENTO: 0.0}
+
+
+def test_reporte_ignora_remito_sin_recepcion_delegando_en_el_modelo(
+    db: Session, datos: dict
+) -> None:
+    """Si tiempo_transito() avisa que faltan fechas, se ignora ese remito."""
+    centro = db.get(ClinicaVeterinaria, datos["centro"])
+    despacho = datetime.combine(datos["hoy"], time(hour=8))
+    contenedor = ContenedorEnvio(numero=4)
+    db.add(contenedor)
+    db.flush()
+    sin_recepcion = RemitoBiologico(
+        numero=4,
+        fecha_emision=despacho - timedelta(hours=1),
+        clinica_origen=centro,
+        laboratorio_destino="Laboratorio G4",
+        estado=EstadoRemito.DESPACHADO,
+        fecha_hora_despacho=despacho,
+        contenedor=contenedor,
+    )
+    db.add(sin_recepcion)
+    db.commit()
+
+    original = RemitoBiologico.tiempo_transito
+    vistos: list[int] = []
+
+    def espiar(self) -> float:
+        vistos.append(self.id)
+        return original(self)
+
+    with patch.object(RemitoBiologico, "tiempo_transito", espiar):
+        respuesta = ReporteService(db).tiempos_promedio(_filtros(datos))
+
+    assert sin_recepcion.id in vistos
+    assert respuesta.totales == {TRANSITO: 2700.0, PROCESAMIENTO: 5400.0}
+    fila = next(f for f in respuesta.filas if f["remito_id"] == sin_recepcion.id)
+    assert fila[TRANSITO] == 0.0
 
 
 def test_http_tiempos_devuelve_segundos(client, datos: dict) -> None:

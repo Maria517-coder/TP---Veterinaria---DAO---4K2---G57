@@ -1,4 +1,5 @@
 """Reporte de tiempo promedio de tránsito y de procesamiento."""
+from app.exceptions import ConflictoDeRecurso
 from app.models.muestra_biologica import MuestraBiologica
 from app.models.remito_biologico import RemitoBiologico
 from app.repositories.reporte_repository import ReporteRepository
@@ -59,10 +60,11 @@ class ReporteTiemposPromedio(Reporte):
 
     @staticmethod
     def _transito(remito: RemitoBiologico) -> float | None:
-        """Segundos entre despacho y recepción; None si aún no se recibió."""
-        if remito.fecha_hora_despacho is None or remito.fecha_hora_recepcion is None:
+        """Segundos según el modelo; None si faltan fechas para calcularlos."""
+        try:
+            return remito.tiempo_transito()
+        except ConflictoDeRecurso:
             return None
-        return (remito.fecha_hora_recepcion - remito.fecha_hora_despacho).total_seconds()
 
     @staticmethod
     def _procesada(muestra: MuestraBiologica) -> bool:
