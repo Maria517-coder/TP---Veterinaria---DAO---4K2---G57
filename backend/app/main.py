@@ -9,6 +9,7 @@ from app.config.settings import settings
 from app.middlewares.cors import configurar_cors
 from app.middlewares.manejadores_errores import registrar_manejadores
 from app.routers import (
+    clinicas,
     clientes,
     consultas,
     contenedores,
@@ -35,8 +36,8 @@ app = FastAPI(title=settings.nombre_app, lifespan=lifespan)
 configurar_cors(app)
 registrar_manejadores(app)
 
-# Volver a registrar clínicas cuando estén disponibles sus schemas y servicios.
 for modulo in (
+    clinicas,
     clientes,
     mascotas,
     turnos,

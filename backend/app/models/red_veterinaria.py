@@ -5,6 +5,7 @@ from sqlalchemy import Index, String, literal_column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
+from app.exceptions import ReglaDeNegocioViolada
 
 
 INDICE_RED_UNICA = Index(
@@ -24,4 +25,7 @@ class RedVeterinaria(Base):
     clinicas: Mapped[list["ClinicaVeterinaria"]] = relationship(back_populates="red")
 
     def agregar_clinica(self, clinica: "ClinicaVeterinaria") -> None:
-        raise NotImplementedError("TODO: agregar la clínica a la red")
+        """Vincula una clínica a la red, rechazando una referencia nula."""
+        if clinica is None:
+            raise ReglaDeNegocioViolada("No se puede agregar una clínica nula a la red")
+        clinica.red = self
