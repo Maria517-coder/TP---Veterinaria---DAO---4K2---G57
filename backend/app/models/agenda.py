@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from app.exceptions import TurnoSuperpuesto
+
 if TYPE_CHECKING:
     from app.models.turno import Turno
 
@@ -12,7 +14,16 @@ class Agenda:
         self.turnos = turnos
 
     def agregar_turno(self, turno: "Turno") -> None:
-        raise NotImplementedError("TODO: validar superposición y agregar el turno")
+        """Valida la superposición y agrega el turno a la agenda."""
+        if self.hay_superposicion(turno):
+            raise TurnoSuperpuesto("El turno se superpone con otro de la agenda")
+        self.turnos.append(turno)
 
     def hay_superposicion(self, turno: "Turno") -> bool:
-        raise NotImplementedError("TODO: detectar turnos que se pisan")
+        """Indica si el turno pisa otro vigente, con intervalo semiabierto."""
+        return any(
+            existente.activo
+            and turno.inicio < existente.fin
+            and existente.inicio < turno.fin
+            for existente in self.turnos
+        )
