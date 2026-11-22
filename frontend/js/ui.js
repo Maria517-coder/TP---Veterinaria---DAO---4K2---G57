@@ -31,19 +31,31 @@ export function entradaTexto(placeholder = "", tipo = "text") {
   return entrada;
 }
 
-export function selectOpciones(items, { placeholder = "Seleccionar…", valor = "id", texto = "nombre" } = {}) {
-  const select = document.createElement("select");
-  const opcionVacia = document.createElement("option");
-  opcionVacia.value = "";
-  opcionVacia.textContent = placeholder;
-  select.appendChild(opcionVacia);
+export function entradaArea(placeholder = "") {
+  const area = document.createElement("textarea");
+  area.placeholder = placeholder;
+  return area;
+}
+
+export function llenarSelect(select, items, { placeholder = "Seleccionar…", valor = "id", texto = "nombre", incluirVacio = true } = {}) {
+  limpiar(select);
+  if (incluirVacio) {
+    const opcionVacia = document.createElement("option");
+    opcionVacia.value = "";
+    opcionVacia.textContent = placeholder;
+    select.appendChild(opcionVacia);
+  }
   items.forEach((item) => {
     const opcion = document.createElement("option");
-    opcion.value = String(item[valor]);
-    opcion.textContent = String(item[texto]);
+    opcion.value = String(typeof valor === "function" ? valor(item) : item[valor]);
+    opcion.textContent = String(typeof texto === "function" ? texto(item) : item[texto]);
     select.appendChild(opcion);
   });
   return select;
+}
+
+export function selectOpciones(items, opciones = {}) {
+  return llenarSelect(document.createElement("select"), items, opciones);
 }
 
 export function agregarBoton(contenedor, texto, alHacerClic, clase = "boton boton-principal") {
@@ -68,11 +80,8 @@ export function tabla(encabezados, filas) {
     const filaTabla = crearElemento("tr");
     fila.forEach((valor) => {
       const celda = crearElemento("td");
-      if (valor instanceof Node) {
-        celda.appendChild(valor);
-      } else {
-        celda.textContent = valor === null || valor === undefined || valor === "" ? "—" : String(valor);
-      }
+      if (valor instanceof Node) celda.appendChild(valor);
+      else celda.textContent = valor === null || valor === undefined || valor === "" ? "—" : String(valor);
       filaTabla.appendChild(celda);
     });
     cuerpo.appendChild(filaTabla);
@@ -111,4 +120,68 @@ export function etiquetaEstado(estado) {
     Rechazada: "Rechazada",
   };
   return crearElemento("span", textos[valor] || valor, clases[valor] || "estado");
+}
+
+export function etiquetaEstadoRemito(estado) {
+  const valor = String(estado || "").trim();
+  const clases = {
+    GENERADO: "estado estado-generado",
+    DESPACHADO: "estado estado-despachado",
+    RECIBIDO: "estado estado-recibido-remito",
+    CERRADO: "estado estado-cerrado",
+  };
+  return crearElemento("span", valor || "—", clases[valor] || "estado");
+}
+
+export function crearTarjeta(titulo, texto = "") {
+  const tarjeta = crearElemento("section", "", "tarjeta");
+  if (titulo) tarjeta.appendChild(crearElemento("h2", titulo));
+  if (texto) tarjeta.appendChild(crearElemento("p", texto, "texto-secundario"));
+  return tarjeta;
+}
+
+export function pestanas(definiciones, activaInicial) {
+  const contenedor = crearElemento("div", "", "pestanas");
+  const barra = crearElemento("div", "", "pestanas-barra");
+  const panel = crearElemento("div", "", "pestanas-panel");
+  let activa = activaInicial || (definiciones[0] && definiciones[0].id);
+
+  async function mostrar(id) {
+    activa = id;
+    barra.querySelectorAll("button").forEach((boton) => {
+      const esActiva = boton.dataset.id === id;
+      boton.classList.toggle("activa", esActiva);
+      boton.setAttribute("aria-selected", esActiva ? "true" : "false");
+    });
+    limpiar(panel);
+    const def = definiciones.find((item) => item.id === id);
+    if (def) await def.render(panel);
+  }
+
+  definiciones.forEach((def) => {
+    const boton = crearElemento("button", def.titulo, "pestana");
+    boton.type = "button";
+    boton.dataset.id = def.id;
+    boton.setAttribute("role", "tab");
+    boton.addEventListener("click", () => {
+      mostrar(def.id).catch((error) => mensaje(panel, error.message, "error"));
+    });
+    barra.appendChild(boton);
+  });
+
+  contenedor.appendChild(barra);
+  contenedor.appendChild(panel);
+  mostrar(activa).catch((error) => mensaje(panel, error.message, "error"));
+  return contenedor;
+}
+
+export function formatearFechaHora(valor) {
+  if (!valor) return "—";
+  return String(valor).replace("T", " ").slice(0, 16);
+}
+
+export function vinculo(texto, hash, clase = "enlace") {
+  const a = crearElemento("a", texto, clase);
+  a.href = hash.startsWith("#") ? hash : `#${hash}`;
+  return a;
 }

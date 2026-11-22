@@ -1,6 +1,17 @@
 /* Punto de entrada: sidebar, rutas y arranque del router. */
 import { iniciarRouter, obtenerRutaActual, registrarRuta } from "./router.js";
+import { montarClinicaDetalle, montarClinicas } from "./vistas/clinicas.js";
+import { montarConsultaDetalle, montarConsultorio } from "./vistas/consultorio.js";
 import { montarInicio } from "./vistas/inicio.js";
+import {
+  montarContenedorDetalle,
+  montarLaboratorio,
+  montarMuestraDetalle,
+  montarRemitoDetalle,
+} from "./vistas/laboratorio.js";
+import { montarMascotaDetalle, montarRecepcion } from "./vistas/recepcion.js";
+import { montarReportes } from "./vistas/reportes.js";
+import { montarTurnos } from "./vistas/turnos.js";
 
 const TITULOS = {
   inicio: "Inicio",
@@ -12,9 +23,18 @@ const TITULOS = {
   reportes: "Reportes",
 };
 
+const AREA_POR_SEGMENTO = {
+  mascotas: "recepcion",
+  consultas: "consultorio",
+  contenedores: "laboratorio",
+  remitos: "laboratorio",
+  muestras: "laboratorio",
+};
+
 function areaDeRuta(ruta) {
   const partes = ruta.split("/").filter(Boolean);
-  return partes[0] || "inicio";
+  const segmento = partes[0] || "inicio";
+  return AREA_POR_SEGMENTO[segmento] || segmento;
 }
 
 function actualizarMenu() {
@@ -32,42 +52,27 @@ function actualizarMenu() {
   if (titulo) titulo.textContent = TITULOS[area] || "Red veterinaria";
 }
 
-function registrarPlaceholder(patron, nombre) {
-  registrarRuta(patron, async () => {
+function registrar(patron, render) {
+  registrarRuta(patron, async (ctx) => {
     actualizarMenu();
-    const app = document.getElementById("app");
-    while (app.firstChild) app.removeChild(app.firstChild);
-    const tarjeta = document.createElement("section");
-    tarjeta.className = "tarjeta";
-    const h2 = document.createElement("h2");
-    h2.textContent = nombre;
-    const p = document.createElement("p");
-    p.className = "texto-secundario";
-    p.textContent = "Esta sección se implementa en una tanda próxima.";
-    tarjeta.appendChild(h2);
-    tarjeta.appendChild(p);
-    app.appendChild(tarjeta);
+    await render(ctx);
   });
 }
 
 async function iniciar() {
-  registrarRuta("/inicio", async (ctx) => {
-    actualizarMenu();
-    await montarInicio(ctx);
-  });
-
-  registrarPlaceholder("/clinicas", "Red y clínicas");
-  registrarPlaceholder("/clinicas/:id", "Ficha de clínica");
-  registrarPlaceholder("/recepcion", "Recepción");
-  registrarPlaceholder("/mascotas/:id", "Ficha de mascota");
-  registrarPlaceholder("/consultorio", "Consultorio");
-  registrarPlaceholder("/consultas/:id", "Ficha de consulta");
-  registrarPlaceholder("/turnos", "Turnos");
-  registrarPlaceholder("/laboratorio", "Laboratorio y envíos");
-  registrarPlaceholder("/contenedores/:id", "Ficha de contenedor");
-  registrarPlaceholder("/remitos/:id", "Ficha de remito");
-  registrarPlaceholder("/muestras/:id", "Ficha de muestra");
-  registrarPlaceholder("/reportes", "Reportes");
+  registrar("/inicio", montarInicio);
+  registrar("/clinicas", montarClinicas);
+  registrar("/clinicas/:id", montarClinicaDetalle);
+  registrar("/recepcion", montarRecepcion);
+  registrar("/mascotas/:id", montarMascotaDetalle);
+  registrar("/consultorio", montarConsultorio);
+  registrar("/consultas/:id", montarConsultaDetalle);
+  registrar("/turnos", montarTurnos);
+  registrar("/laboratorio", montarLaboratorio);
+  registrar("/contenedores/:id", montarContenedorDetalle);
+  registrar("/remitos/:id", montarRemitoDetalle);
+  registrar("/muestras/:id", montarMuestraDetalle);
+  registrar("/reportes", montarReportes);
 
   await iniciarRouter();
 }

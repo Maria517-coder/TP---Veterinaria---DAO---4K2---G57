@@ -259,3 +259,55 @@ th { font-size: 0.85rem; color: var(--texto-secundario); font-weight: 600; backg
   .sidebar { width: 100%; }
   .barra-superior, .app { padding-left: 20px; padding-right: 20px; }
 }
+
+
+/* R2-R7 helpers */
+.enlace { color: var(--acento); font-weight: 600; text-decoration: none; }
+.enlace:hover, .enlace:focus-visible { text-decoration: underline; outline: none; }
+
+.seccion { margin-top: 24px; }
+.seccion h3 { margin: 0 0 12px; font-size: 1.1rem; }
+.grilla-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.grilla-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.fila { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.fila > * { flex: 1; min-width: 180px; }
+.fila .campo { margin-bottom: 0; }
+.acciones-fila { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+.pestanas-barra { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.pestana {
+  min-height: var(--altura-control);
+  padding: 10px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pestana.activa { background: var(--acento); color: #fff; border-color: var(--acento); }
+.pestanas-panel { padding-top: 4px; }
+
+.lista-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; margin: 0; }
+.lista-datos dt { font-size: 0.8rem; color: var(--texto-secundario); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+.lista-datos dd { margin: 2px 0 0; font-weight: 500; }
+
+.estado-generado { background: #E8EEF2; color: #2C3E4D; }
+.estado-despachado { background: #FFE8B8; color: #7A4A00; }
+.estado-recibido-remito { background: #CFEBD9; color: #0F5132; }
+.estado-cerrado { background: #0F5132; color: #FFFFFF; }
+
+.panel-pasos { background: #FAFBFA; border: 1px solid var(--borde); border-radius: var(--radio); padding: 16px; margin-top: 16px; }
+.panel-pasos h4 { margin: 0 0 12px; }
+.panel-pasos ol { margin: 0; padding-left: 20px; }
+.panel-pasos li { margin-bottom: 8px; }
+.panel-pasos p { margin: 4px 0 0; color: var(--texto-secundario); font-size: 0.9rem; }
+
+.resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.resumen-item { background: #FAFBFA; border: 1px solid var(--borde); border-radius: 8px; padding: 12px; }
+.resumen-item .etiqueta { font-size: 0.8rem; color: var(--texto-secundario); font-weight: 600; }
+.resumen-item .valor { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+
+.bloque-acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.aviso { padding: 12px 14px; border-radius: 8px; margin: 12px 0; border: 1px solid var(--aviso-borde); background: var(--aviso-fondo); color: var(--aviso-texto); }
+.tarjeta + .tarjeta { margin-top: 20px; }

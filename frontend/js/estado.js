@@ -1,4 +1,4 @@
-/*Estado compartido de la página y carga de catálogos.*/
+/* Estado compartido y carga de catálogos. */
 import { api } from "./api.js";
 
 // TODO: reemplazar por GET /api/especies cuando el backend exponga el catálogo.
@@ -12,7 +12,7 @@ export const ESPECIES = [
 const estado = {
   red: null,
   clinicas: [],
-  veterinarios: [],
+  veterinariosPorClinica: {},
   vacunas: [],
   tiposMuestra: [],
 };
@@ -28,20 +28,35 @@ export async function cargarCatalogos() {
     api("/vacunas"),
     api("/tipos-muestra"),
   ]);
-
   estado.red = red;
   estado.clinicas = clinicas;
   estado.vacunas = vacunas;
   estado.tiposMuestra = tiposMuestra;
-  estado.veterinarios = [];
   return estado;
 }
 
 export async function cargarVeterinarios(clinicaId) {
-  if (!clinicaId) {
-    estado.veterinarios = [];
-    return estado.veterinarios;
-  }
-  estado.veterinarios = await api(`/clinicas/${clinicaId}/veterinarios`);
-  return estado.veterinarios;
+  if (!clinicaId) return [];
+  const vets = await api(`/clinicas/${clinicaId}/veterinarios`);
+  estado.veterinariosPorClinica[String(clinicaId)] = vets;
+  return vets;
+}
+
+export async function cargarTodosVeterinarios() {
+  const clinicas = estado.clinicas.length ? estado.clinicas : await api("/clinicas");
+  estado.clinicas = clinicas;
+  const entradas = await Promise.all(
+    clinicas.map(async (clinica) => [String(clinica.id), await api(`/clinicas/${clinica.id}/veterinarios`)]),
+  );
+  estado.veterinariosPorClinica = Object.fromEntries(entradas);
+  return estado.veterinariosPorClinica;
+}
+
+export function todosLosVeterinarios() {
+  return Object.values(estado.veterinariosPorClinica).flat();
+}
+
+export function nombreEspecie(id) {
+  const especie = ESPECIES.find((item) => item.id === Number(id));
+  return especie ? especie.nombre : `Especie ${id}`;
 }
