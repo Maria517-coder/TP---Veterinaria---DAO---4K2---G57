@@ -40,7 +40,9 @@ def turnos(db: Session) -> tuple[int, datetime]:
     )
     db.add(mascota)
     db.flush()
-    base = datetime.now() + timedelta(days=1)
+    base = (datetime.now() + timedelta(days=1)).replace(
+        hour=10, minute=0, second=0, microsecond=0
+    )
     db.add_all(
         [
             Turno(

@@ -1,8 +1,10 @@
 """Punto de entrada: crea la app, registra routers y manejadores de errores."""
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.config.database import SessionLocal, crear_tablas
 from app.config.settings import settings
@@ -122,3 +124,7 @@ for modulo in (
 )
 def health() -> dict[str, str]:
     return {"estado": "ok"}
+
+
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

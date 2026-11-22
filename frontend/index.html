@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Red de clínicas veterinarias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app/css/estilos.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <div class="marca">
+        <p class="marca-titulo">Red veterinaria</p>
+        <p class="marca-subtitulo">Derivación de laboratorio</p>
+      </div>
+      <nav class="menu" aria-label="Secciones principales">
+        <a class="menu-item" href="#/inicio" data-ruta="inicio">Inicio</a>
+        <a class="menu-item" href="#/clinicas" data-ruta="clinicas">Red y clínicas</a>
+        <a class="menu-item" href="#/recepcion" data-ruta="recepcion">Recepción</a>
+        <a class="menu-item" href="#/consultorio" data-ruta="consultorio">Consultorio</a>
+        <a class="menu-item" href="#/turnos" data-ruta="turnos">Turnos</a>
+        <a class="menu-item" href="#/laboratorio" data-ruta="laboratorio">Laboratorio y envíos</a>
+        <a class="menu-item" href="#/reportes" data-ruta="reportes">Reportes</a>
+      </nav>
+    </aside>
+
+    <div class="contenido-principal">
+      <header class="barra-superior">
+        <p id="titulo-seccion" class="titulo-seccion">Inicio</p>
+      </header>
+      <main id="app" class="app" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <script type="module" src="/app/js/app.js"></script>
+</body>
+</html>
