@@ -58,7 +58,9 @@ def ctx(db: Session) -> dict:
         "vet_baja": veterinario_baja.id,
         "mascota": mascota.id,
         "mascota_baja": mascota_baja.id,
-        "base": datetime.now() + timedelta(days=1),
+        "base": (datetime.now() + timedelta(days=1)).replace(
+            hour=10, minute=0, second=0, microsecond=0
+        ),
     }
 
 
