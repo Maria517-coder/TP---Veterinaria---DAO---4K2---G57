@@ -1,4 +1,4 @@
-"""Estado compartido de la página y carga de catálogos."""
+/*Estado compartido de la página y carga de catálogos.*/
 import { api } from "./api.js";
 
 // TODO: reemplazar por GET /api/especies cuando el backend exponga el catálogo.

@@ -1,4 +1,4 @@
-"""Envoltorio de fetch: unifica errores del backend y descarga PDFs."""
+/*Envoltorio de fetch: unifica errores del backend y descarga PDFs.*/
 const BASE = "/api";
 
 function rutaLegible(loc) {

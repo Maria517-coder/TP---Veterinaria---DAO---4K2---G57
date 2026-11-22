@@ -1,4 +1,4 @@
-"""Pantalla 0: preparar red, clínica, veterinario y vacunas."""
+/*Pantalla 0: preparar red, clínica, veterinario y vacunas.*/
 import { api } from "../api.js";
 import { ESPECIES, cargarCatalogos, cargarVeterinarios, obtenerEstado } from "../estado.js";
 import {
