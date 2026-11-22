@@ -1,0 +1,126 @@
+/* Estilos mínimos, sin frameworks: prioridad de lectura sobre diseño. */
+:root {
+  --borde: #d6dde5;
+  --fondo: #f6f8fa;
+  --texto: #1f2933;
+  --acento: #0b6e4f;
+  --error: #b42318;
+  --ok: #0b6e4f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.45;
+}
+
+header { margin-bottom: 1.5rem; }
+header h1 { margin: 0 0 .25rem; font-size: 1.6rem; }
+header p { margin: 0; color: #52606d; }
+
+#navegacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+
+#navegacion button {
+  padding: .5rem .9rem;
+  border: 1px solid var(--borde);
+  border-radius: .4rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+#navegacion button.activo {
+  border-color: var(--acento);
+  color: var(--acento);
+  font-weight: 600;
+}
+
+main {
+  max-width: 1000px;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: .6rem;
+}
+
+h2 { margin-top: 0; }
+h3 { margin: 1.25rem 0 .5rem; font-size: 1.05rem; }
+
+.bloque {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: .5rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  margin-bottom: .75rem;
+}
+
+.campo-etiqueta { font-size: .85rem; font-weight: 600; }
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  width: 100%;
+  padding: .45rem .55rem;
+  border: 1px solid var(--borde);
+  border-radius: .35rem;
+  font: inherit;
+}
+
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: .75rem;
+}
+
+.boton {
+  padding: .5rem .9rem;
+  border: 0;
+  border-radius: .35rem;
+  background: var(--acento);
+  color: #fff;
+  cursor: pointer;
+}
+
+.boton:hover { filter: brightness(.95); }
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: .9rem;
+}
+
+.tabla th, .tabla td {
+  padding: .45rem .55rem;
+  border: 1px solid var(--borde);
+  text-align: left;
+}
+
+.tabla th { background: var(--fondo); }
+
+.mensaje {
+  padding: .6rem .8rem;
+  margin-bottom: 1rem;
+  border-radius: .35rem;
+  background: #eef2f6;
+}
+
+.mensaje-error { background: #fdecea; color: var(--error); }
+.mensaje-ok { background: #e7f5ef; color: var(--ok); }
+.mensaje-info { background: #eef2f6; }
+
+.vacio { color: #7b8794; font-style: italic; }
