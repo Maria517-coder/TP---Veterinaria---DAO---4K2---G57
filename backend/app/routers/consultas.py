@@ -19,7 +19,7 @@ from app.schemas.consulta import (
 )
 from app.services.consulta_service import ConsultaService
 
-router = APIRouter(prefix="/consultas", tags=["Consultas"])
+router = APIRouter(prefix="/consultas")
 
 
 def _respuesta_pdf() -> dict:
@@ -33,7 +33,19 @@ def _respuesta_pdf() -> dict:
     }
 
 
-@router.post("", response_model=ConsultaRespuesta, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ConsultaRespuesta,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Consultas"],
+    summary="Registrar una atención",
+    description=(
+        "Registra una consulta y devuelve las vacunas obligatorias pendientes de la "
+        "mascota. El costo se envía como texto con dos decimales, por ejemplo \"100.00\". "
+        "Errores: 404 si no existen la clínica, el veterinario o la mascota; "
+        "422 si la fecha es futura o el costo no es válido."
+    ),
+)
 def crear_consulta(
     datos: ConsultaCrear, db: Session = Depends(get_db)
 ) -> ConsultaRespuesta:
@@ -47,7 +59,17 @@ def crear_consulta(
     return respuesta
 
 
-@router.get("", response_model=list[ConsultaRespuesta])
+@router.get(
+    "",
+    response_model=list[ConsultaRespuesta],
+    tags=["Consultas"],
+    summary="Listar consultas con filtros",
+    description=(
+        "Lista consultas con filtros combinables de clínica, fecha, mascota, "
+        "veterinario y presencia de muestras. "
+        "Sin errores de dominio: sin resultados devuelve 200 con lista vacía."
+    ),
+)
 def listar_consultas(
     clinica_id: int | None = None,
     fecha: date | None = None,
@@ -62,7 +84,16 @@ def listar_consultas(
     )
 
 
-@router.get("/{consulta_id}", response_model=ConsultaRespuesta)
+@router.get(
+    "/{consulta_id}",
+    response_model=ConsultaRespuesta,
+    tags=["Consultas"],
+    summary="Obtener una consulta por id",
+    description=(
+        "Devuelve una consulta por su id. "
+        "Errores: 404 si no existe."
+    ),
+)
 def obtener_consulta(
     consulta_id: int, db: Session = Depends(get_db)
 ) -> ConsultaMedica:
@@ -74,6 +105,13 @@ def obtener_consulta(
     "/{consulta_id}/muestras",
     response_model=MuestraRespuesta,
     status_code=status.HTTP_201_CREATED,
+    tags=["Consultas"],
+    summary="Registrar una muestra de una consulta",
+    description=(
+        "Crea una muestra en estado Extraida, asociada a la consulta y a su clínica de origen. "
+        "Errores: 404 si no existen la consulta o el tipo de muestra; "
+        "422 si el tipo de muestra no es válido."
+    ),
 )
 def registrar_muestra(
     consulta_id: int, datos: MuestraCrear, db: Session = Depends(get_db)
@@ -82,7 +120,16 @@ def registrar_muestra(
     return ConsultaService(db).registrar_muestra(consulta_id, datos)
 
 
-@router.get("/{consulta_id}/muestras", response_model=list[MuestraRespuesta])
+@router.get(
+    "/{consulta_id}/muestras",
+    response_model=list[MuestraRespuesta],
+    tags=["Consultas"],
+    summary="Listar las muestras de una consulta",
+    description=(
+        "Lista las muestras registradas en la consulta. "
+        "Errores: 404 si no existe la consulta."
+    ),
+)
 def listar_muestras(
     consulta_id: int, db: Session = Depends(get_db)
 ) -> list[MuestraBiologica]:
@@ -94,6 +141,12 @@ def listar_muestras(
     "/{consulta_id}/orden-derivacion",
     response_class=Response,
     responses=_respuesta_pdf(),
+    tags=["Consultas"],
+    summary="Descargar la orden de derivación",
+    description=(
+        "Genera en PDF la orden de derivación con las muestras de la consulta. "
+        "Errores: 404 si no existe la consulta; 409 si no tiene muestras para derivar."
+    ),
 )
 def descargar_orden_derivacion(
     consulta_id: int, db: Session = Depends(get_db)
@@ -115,6 +168,12 @@ def descargar_orden_derivacion(
     "/{consulta_id}/comprobante",
     response_class=Response,
     responses=_respuesta_pdf(),
+    tags=["Consultas"],
+    summary="Descargar el comprobante de atención",
+    description=(
+        "Genera en PDF el comprobante de la atención. "
+        "Errores: 404 si no existe la consulta."
+    ),
 )
 def descargar_comprobante(
     consulta_id: int, db: Session = Depends(get_db)
@@ -130,7 +189,17 @@ def descargar_comprobante(
     )
 
 
-@router.get("/{consulta_id}/costo-total", response_model=CostoTotalRespuesta)
+@router.get(
+    "/{consulta_id}/costo-total",
+    response_model=CostoTotalRespuesta,
+    tags=["Consultas"],
+    summary="Calcular el costo total de una consulta",
+    description=(
+        "Suma el costo de la consulta y el análisis de cada muestra. "
+        "El total se serializa como texto con dos decimales. "
+        "Errores: 404 si no existe la consulta."
+    ),
+)
 def obtener_costo_total(
     consulta_id: int, db: Session = Depends(get_db)
 ) -> dict[str, Decimal]:

@@ -34,12 +34,21 @@ from app.models.red_veterinaria import RedVeterinaria
 from app.models.tipo_muestra import TipoMuestra
 from app.models.veterinario import Veterinario
 
-router = APIRouter(tags=["Clínicas"])
+router = APIRouter()
 
 # ================================
 # Red y Clínicas (E20-E24)
 # ================================
-@router.get("/red", response_model=RedVeterinariaRespuesta)
+@router.get(
+    "/red",
+    response_model=RedVeterinariaRespuesta,
+    tags=["Clínicas y veterinarios"],
+    summary="Obtener la red veterinaria",
+    description=(
+        "Devuelve la red única a la que pertenecen las clínicas. "
+        "Errores: 404 si la red todavía no está configurada."
+    ),
+)
 def obtener_red(db: Session = Depends(get_db)) -> RedVeterinaria:
     """Devuelve la red única (E20)."""
     return ClinicaService(db).obtener_red()
@@ -49,6 +58,13 @@ def obtener_red(db: Session = Depends(get_db)) -> RedVeterinaria:
     "/red/clinicas",
     response_model=ClinicaVeterinariaRespuesta,
     status_code=status.HTTP_201_CREATED,
+    tags=["Clínicas y veterinarios"],
+    summary="Agregar una clínica a la red",
+    description=(
+        "Crea una clínica con nombre único dentro de la red. "
+        "Errores: 404 si no existe la red; 409 si el nombre ya está en uso; "
+        "422 si el nombre está vacío o supera el largo permitido."
+    ),
 )
 def agregar_clinica(
     datos: ClinicaVeterinariaCrear, db: Session = Depends(get_db)
@@ -57,19 +73,47 @@ def agregar_clinica(
     return ClinicaService(db).agregar_clinica_a_red(datos)
 
 
-@router.get("/clinicas", response_model=list[ClinicaVeterinariaRespuesta])
+@router.get(
+    "/clinicas",
+    response_model=list[ClinicaVeterinariaRespuesta],
+    tags=["Clínicas y veterinarios"],
+    summary="Listar las clínicas de la red",
+    description=(
+        "Devuelve todas las clínicas de la red. "
+        "Sin errores de dominio: sin clínicas devuelve 200 con lista vacía."
+    ),
+)
 def listar_clinicas(db: Session = Depends(get_db)) -> list[ClinicaVeterinaria]:
     """Lista todas las clínicas de la red (E22)."""
     return ClinicaService(db).listar_clinicas()
 
 
-@router.get("/clinicas/{id}", response_model=ClinicaVeterinariaRespuesta)
+@router.get(
+    "/clinicas/{id}",
+    response_model=ClinicaVeterinariaRespuesta,
+    tags=["Clínicas y veterinarios"],
+    summary="Obtener una clínica por id",
+    description=(
+        "Devuelve el detalle de una clínica. "
+        "Errores: 404 si no existe."
+    ),
+)
 def obtener_clinica(id: int, db: Session = Depends(get_db)) -> ClinicaVeterinaria:
     """Devuelve los detalles de una clínica por su ID (E23)."""
     return ClinicaService(db).obtener_clinica(id)
 
 
-@router.put("/clinicas/{id}", response_model=ClinicaVeterinariaRespuesta)
+@router.put(
+    "/clinicas/{id}",
+    response_model=ClinicaVeterinariaRespuesta,
+    tags=["Clínicas y veterinarios"],
+    summary="Reemplazar el nombre de una clínica",
+    description=(
+        "PUT de reemplazo total del nombre de la clínica. "
+        "Errores: 404 si no existe; 409 si el nombre ya está en uso; "
+        "422 si el nombre no es válido."
+    ),
+)
 def actualizar_clinica(
     id: int, datos: ClinicaVeterinariaActualizar, db: Session = Depends(get_db)
 ) -> ClinicaVeterinaria:
@@ -84,6 +128,13 @@ def actualizar_clinica(
     "/clinicas/{id}/veterinarios",
     response_model=VeterinarioRespuesta,
     status_code=status.HTTP_201_CREATED,
+    tags=["Clínicas y veterinarios"],
+    summary="Dar de alta un veterinario en una clínica",
+    description=(
+        "Crea un veterinario activo con matrícula única, asociado a la clínica indicada. "
+        "Errores: 404 si no existe la clínica; 409 si la matrícula ya está registrada; "
+        "422 si faltan datos."
+    ),
 )
 def crear_veterinario(
     id: int, datos: VeterinarioCrear, db: Session = Depends(get_db)
@@ -92,7 +143,16 @@ def crear_veterinario(
     return VeterinarioService(db).crear_en_clinica(id, datos)
 
 
-@router.get("/clinicas/{id}/veterinarios", response_model=list[VeterinarioRespuesta])
+@router.get(
+    "/clinicas/{id}/veterinarios",
+    response_model=list[VeterinarioRespuesta],
+    tags=["Clínicas y veterinarios"],
+    summary="Listar los veterinarios de una clínica",
+    description=(
+        "Devuelve los veterinarios activos de la clínica. "
+        "Errores: 404 si no existe la clínica."
+    ),
+)
 def listar_veterinarios_clinica(
     id: int, db: Session = Depends(get_db)
 ) -> list[Veterinario]:
@@ -100,7 +160,17 @@ def listar_veterinarios_clinica(
     return VeterinarioService(db).listar_por_clinica(id)
 
 
-@router.put("/veterinarios/{id}", response_model=VeterinarioRespuesta)
+@router.put(
+    "/veterinarios/{id}",
+    response_model=VeterinarioRespuesta,
+    tags=["Clínicas y veterinarios"],
+    summary="Reemplazar los datos de un veterinario",
+    description=(
+        "PUT de reemplazo total de nombre y matrícula. "
+        "Errores: 404 si no existe; 409 si la matrícula pertenece a otro veterinario; "
+        "422 si los datos no son válidos."
+    ),
+)
 def actualizar_veterinario(
     id: int, datos: VeterinarioActualizar, db: Session = Depends(get_db)
 ) -> Veterinario:
@@ -108,7 +178,16 @@ def actualizar_veterinario(
     return VeterinarioService(db).actualizar(id, datos)
 
 
-@router.delete("/veterinarios/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/veterinarios/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Clínicas y veterinarios"],
+    summary="Dar de baja un veterinario",
+    description=(
+        "Baja lógica: el veterinario deja de listarse en su clínica. "
+        "Errores: 404 si no existe."
+    ),
+)
 def eliminar_veterinario(id: int, db: Session = Depends(get_db)) -> None:
     """Da de baja lógica a un veterinario (E28)."""
     VeterinarioService(db).eliminar(id)
@@ -117,7 +196,16 @@ def eliminar_veterinario(id: int, db: Session = Depends(get_db)) -> None:
 # ================================
 # Tipos de Muestra (E29-E31)
 # ================================
-@router.get("/tipos-muestra", response_model=list[TipoMuestraRespuesta])
+@router.get(
+    "/tipos-muestra",
+    response_model=list[TipoMuestraRespuesta],
+    tags=["Tipos de muestra"],
+    summary="Listar los tipos de muestra",
+    description=(
+        "Devuelve el catálogo de tipos de muestra con su costo de análisis. "
+        "Sin errores de dominio: sin tipos devuelve 200 con lista vacía."
+    ),
+)
 def listar_tipos_muestra(db: Session = Depends(get_db)) -> list[TipoMuestra]:
     """Lista todos los tipos de muestra biológica (E29)."""
     return TipoMuestraService(db).listar()
@@ -127,6 +215,13 @@ def listar_tipos_muestra(db: Session = Depends(get_db)) -> list[TipoMuestra]:
     "/tipos-muestra",
     response_model=TipoMuestraRespuesta,
     status_code=status.HTTP_201_CREATED,
+    tags=["Tipos de muestra"],
+    summary="Crear un tipo de muestra",
+    description=(
+        "Crea un tipo de muestra con nombre único y costo de análisis. "
+        "El importe se envía como texto con dos decimales, por ejemplo \"100.00\". "
+        "Errores: 409 si el nombre ya existe; 422 si el costo es float, negativo o inválido."
+    ),
 )
 def crear_tipo_muestra(
     datos: TipoMuestraCrear, db: Session = Depends(get_db)
@@ -135,7 +230,17 @@ def crear_tipo_muestra(
     return TipoMuestraService(db).crear(datos)
 
 
-@router.put("/tipos-muestra/{id}", response_model=TipoMuestraRespuesta)
+@router.put(
+    "/tipos-muestra/{id}",
+    response_model=TipoMuestraRespuesta,
+    tags=["Tipos de muestra"],
+    summary="Reemplazar un tipo de muestra",
+    description=(
+        "PUT de reemplazo total de nombre y costo de análisis. "
+        "El importe se envía como texto con dos decimales. "
+        "Errores: 404 si no existe; 409 si el nombre ya está en uso; 422 si el costo es inválido."
+    ),
+)
 def actualizar_tipo_muestra(
     id: int, datos: TipoMuestraActualizar, db: Session = Depends(get_db)
 ) -> TipoMuestra:

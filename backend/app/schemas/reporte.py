@@ -10,6 +10,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class FiltroReporteRequest(BaseModel):
     """Filtros opcionales compartidos por los cinco reportes."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "desde": "2020-05-01", "hasta": "2020-05-31", "clinica_id": 1,
+        },
+    })
+
     desde: date | None = None
     hasta: date | None = None
     clinica_id: int | None = Field(default=None, ge=1)

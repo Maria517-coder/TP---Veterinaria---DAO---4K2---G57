@@ -32,9 +32,23 @@ class MascotaBase(BaseModel):
 class MascotaCrear(MascotaBase):
     """Datos de entrada para dar de alta una mascota."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "cliente_id": 1, "especie_id": 1,
+            "nombre": "Fido", "fecha_nacimiento": "2020-05-10",
+        },
+    })
+
 
 class MascotaActualizar(MascotaBase):
     """Datos de entrada para reemplazar una mascota (PUT)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "cliente_id": 1, "especie_id": 1,
+            "nombre": "Fido Actualizado", "fecha_nacimiento": "2020-05-10",
+        },
+    })
 
 
 class MascotaRespuesta(BaseModel):

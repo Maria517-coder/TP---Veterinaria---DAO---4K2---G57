@@ -16,12 +16,20 @@ Nombre = Annotated[
 class VeterinarioCrear(BaseModel):
     """Datos de entrada para dar de alta un veterinario."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"matricula": "MP-1234", "nombre": "Dra. Ana Pérez"},
+    })
+
     matricula: Matricula
     nombre: Nombre
 
 
 class VeterinarioActualizar(BaseModel):
     """Datos de entrada para reemplazar un veterinario (PUT)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"matricula": "MP-1234", "nombre": "Dra. Ana Pérez"},
+    })
 
     matricula: Matricula
     nombre: Nombre

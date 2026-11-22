@@ -23,6 +23,10 @@ ResponsableResultado = Annotated[
 class MuestraFiltros(BaseModel):
     """Filtros opcionales y combinables para el listado de muestras."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"estado": "Recibida", "clinica_id": 1, "fecha": "2020-05-10"},
+    })
+
     estado: EstadoMuestra | None = None
     clinica_id: int | None = Field(default=None, ge=1)
     contenedor_id: int | None = Field(default=None, ge=1)
@@ -31,6 +35,12 @@ class MuestraFiltros(BaseModel):
 
 class ResultadoCrear(BaseModel):
     """Datos necesarios para procesar una muestra Recibida (E47)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "texto": "Hemograma sin observaciones", "responsable": "Lab. Central",
+        },
+    })
 
     texto: TextoResultado
     responsable: ResponsableResultado

@@ -8,6 +8,12 @@ from app.schemas.mascota import Nombre
 class VacunaCrear(BaseModel):
     """Datos de alta con los identificadores de especies aplicables."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "nombre": "Rabia", "obligatoria": True, "especies_aplicables": [1],
+        },
+    })
+
     nombre: Nombre
     obligatoria: bool = False
     especies_aplicables: list[int]
@@ -33,6 +39,10 @@ class VacunaRespuesta(BaseModel):
 
 class VacunacionCrear(BaseModel):
     """Vacuna aplicada y fecha registrada."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"vacuna_id": 1, "fecha": "2020-05-10"},
+    })
 
     vacuna_id: int
     fecha: date

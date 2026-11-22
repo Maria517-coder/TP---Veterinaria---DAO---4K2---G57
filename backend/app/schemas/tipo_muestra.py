@@ -31,12 +31,20 @@ CostoAnalisis = Annotated[Decimal, BeforeValidator(_validar_costo_analisis)]
 class TipoMuestraCrear(BaseModel):
     """Datos de entrada para dar de alta un tipo de muestra."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Sangre", "costo_analisis": "100.00"},
+    })
+
     nombre: Nombre
     costo_analisis: CostoAnalisis
 
 
 class TipoMuestraActualizar(BaseModel):
     """Datos de entrada para reemplazar un tipo de muestra (PUT)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Sangre", "costo_analisis": "125.50"},
+    })
 
     nombre: Nombre
     costo_analisis: CostoAnalisis
