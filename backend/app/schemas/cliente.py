@@ -16,12 +16,20 @@ Telefono = Annotated[
 class ClienteCrear(BaseModel):
     """Datos de entrada para dar de alta un cliente."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Ana Pérez", "telefono": "3815551234"},
+    })
+
     nombre: Nombre
     telefono: Telefono
 
 
 class ClienteActualizar(BaseModel):
     """Datos de entrada para reemplazar un cliente (PUT)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Ana Pérez", "telefono": "3815559999"},
+    })
 
     nombre: Nombre
     telefono: Telefono

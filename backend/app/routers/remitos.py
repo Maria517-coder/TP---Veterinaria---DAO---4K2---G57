@@ -15,7 +15,7 @@ from app.schemas.remito import (
 )
 from app.services.remito_service import RemitoService
 
-router = APIRouter(prefix="/remitos", tags=["Remitos"])
+router = APIRouter(prefix="/remitos")
 
 
 def _respuesta_pdf() -> dict:
@@ -29,7 +29,16 @@ def _respuesta_pdf() -> dict:
     }
 
 
-@router.get("", response_model=list[RemitoRespuesta])
+@router.get(
+    "",
+    response_model=list[RemitoRespuesta],
+    tags=["Remitos"],
+    summary="Listar remitos",
+    description=(
+        "Lista remitos con filtros opcionales de estado, clínica y fechas. "
+        "Sin errores de dominio: sin resultados devuelve 200 con lista vacía."
+    ),
+)
 def listar_remitos(
     filtros: Annotated[RemitoFiltros, Query()], db: Session = Depends(get_db)
 ) -> list[RemitoBiologico]:
@@ -37,14 +46,31 @@ def listar_remitos(
     return RemitoService(db).listar(filtros)
 
 
-@router.get("/{remito_id}", response_model=RemitoRespuesta)
+@router.get(
+    "/{remito_id}",
+    response_model=RemitoRespuesta,
+    tags=["Remitos"],
+    summary="Obtener un remito por id",
+    description=(
+        "Devuelve un remito por su id. "
+        "Errores: 404 si no existe."
+    ),
+)
 def obtener_remito(remito_id: int, db: Session = Depends(get_db)) -> RemitoBiologico:
     """E56: devuelve un remito por su id (404 si no existe)."""
     return RemitoService(db).obtener(remito_id)
 
 
 @router.get(
-    "/{remito_id}/imprimir", response_class=Response, responses=_respuesta_pdf()
+    "/{remito_id}/imprimir",
+    response_class=Response,
+    responses=_respuesta_pdf(),
+    tags=["Remitos"],
+    summary="Descargar el remito en PDF",
+    description=(
+        "Genera el remito biológico imprimible en PDF. "
+        "Errores: 404 si no existe el remito."
+    ),
 )
 def imprimir_remito(remito_id: int, db: Session = Depends(get_db)) -> Response:
     """E57: descarga el remito biológico en PDF."""
@@ -58,7 +84,18 @@ def imprimir_remito(remito_id: int, db: Session = Depends(get_db)) -> Response:
     )
 
 
-@router.post("/{remito_id}/despachar", response_model=RemitoRespuesta)
+@router.post(
+    "/{remito_id}/despachar",
+    response_model=RemitoRespuesta,
+    tags=["Remitos"],
+    summary="Despachar un remito",
+    description=(
+        "Pasa el remito de GENERADO a DESPACHADO, fecha el despacho y envía sus "
+        "muestras a EnTransito. "
+        "Errores: 404 si no existe; 409 si el estado no permite el despacho o las "
+        "muestras no están Empaquetada; 422 si falta el responsable."
+    ),
+)
 def despachar_remito(
     remito_id: int, datos: ResponsableAccion, db: Session = Depends(get_db)
 ) -> RemitoBiologico:
@@ -66,7 +103,18 @@ def despachar_remito(
     return RemitoService(db).despachar(remito_id, datos)
 
 
-@router.post("/{remito_id}/recepcion", response_model=RemitoRespuesta)
+@router.post(
+    "/{remito_id}/recepcion",
+    response_model=RemitoRespuesta,
+    tags=["Remitos"],
+    summary="Registrar la recepción de un remito",
+    description=(
+        "Registra la recepción y devuelve el estado final del remito; si el precinto "
+        "llegó roto, las muestras pasan a Rechazada. "
+        "Errores: 404 si no existe; 409 si no está DESPACHADO o las muestras no están "
+        "EnTransito; 422 si falta el responsable."
+    ),
+)
 def registrar_recepcion(
     remito_id: int, datos: ResponsableAccion, db: Session = Depends(get_db)
 ) -> RemitoBiologico:
@@ -74,7 +122,16 @@ def registrar_recepcion(
     return RemitoService(db).recepcionar(remito_id, datos)
 
 
-@router.get("/{remito_id}/tiempo-transito", response_model=TiempoTransitoRespuesta)
+@router.get(
+    "/{remito_id}/tiempo-transito",
+    response_model=TiempoTransitoRespuesta,
+    tags=["Remitos"],
+    summary="Calcular el tiempo de tránsito",
+    description=(
+        "Devuelve recepción menos despacho en segundos, calculado por el modelo. "
+        "Errores: 404 si no existe el remito; 409 si falta la fecha de despacho o de recepción."
+    ),
+)
 def tiempo_transito(
     remito_id: int, db: Session = Depends(get_db)
 ) -> TiempoTransitoRespuesta:

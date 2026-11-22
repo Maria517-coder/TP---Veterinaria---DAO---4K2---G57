@@ -12,9 +12,15 @@ TextoResponsable = Annotated[
 class ContenedorCrear(BaseModel):
     """El alta no necesita datos: el número es correlativo y el precinto nace intacto."""
 
+    model_config = ConfigDict(json_schema_extra={"example": {}})
+
 
 class ContenedorFiltros(BaseModel):
     """Filtros opcionales: con/sin remito y rango de fechas de las muestras."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"con_remito": True, "desde": "2020-05-01", "hasta": "2020-05-31"},
+    })
 
     con_remito: bool | None = None
     desde: date | None = None
@@ -33,12 +39,20 @@ class ContenedorFiltros(BaseModel):
 class MuestraAgregar(BaseModel):
     """Datos para agregar una muestra existente al contenedor (E51)."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"muestra_id": 1, "responsable": "Recepción"},
+    })
+
     muestra_id: int = Field(ge=1)
     responsable: TextoResponsable
 
 
 class RemitoGenerar(BaseModel):
     """Datos para generar el remito de un contenedor (E53)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"laboratorio_destino": "Laboratorio Central"},
+    })
 
     laboratorio_destino: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)

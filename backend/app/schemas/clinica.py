@@ -12,11 +12,19 @@ Nombre = Annotated[
 class ClinicaVeterinariaCrear(BaseModel):
     """Datos de entrada para dar de alta una clínica."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Clínica Central"},
+    })
+
     nombre: Nombre
 
 
 class ClinicaVeterinariaActualizar(BaseModel):
     """Datos de entrada para reemplazar el nombre de una clínica (PUT)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"nombre": "Clínica Central Actualizada"},
+    })
 
     nombre: Nombre
 

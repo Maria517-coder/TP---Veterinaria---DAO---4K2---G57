@@ -29,6 +29,13 @@ Costo = Annotated[Decimal, BeforeValidator(_validar_costo)]
 class ConsultaCrear(BaseModel):
     """Datos de entrada para registrar una atención."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "veterinario_id": 1, "mascota_id": 1, "fecha": "2020-05-10",
+            "complejidad": "BAJA", "costo": "100.00",
+        },
+    })
+
     veterinario_id: int
     mascota_id: int
     fecha: date
@@ -46,6 +53,10 @@ class ConsultaCrear(BaseModel):
 
 class MuestraCrear(BaseModel):
     """Datos de entrada para crear una muestra: solo se elige su tipo."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"tipo_muestra_id": 1},
+    })
 
     tipo_muestra_id: int
 

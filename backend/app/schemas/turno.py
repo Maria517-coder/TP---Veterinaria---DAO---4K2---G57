@@ -7,6 +7,14 @@ from pydantic import BaseModel, ConfigDict, field_validator
 class TurnoCrear(BaseModel):
     """Datos de entrada para reservar un turno."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "mascota_id": 1,
+            "inicio": "2099-01-10T09:00:00",
+            "fin": "2099-01-10T09:30:00",
+        },
+    })
+
     mascota_id: int
     inicio: datetime
     fin: datetime
@@ -37,6 +45,13 @@ class TurnoCrear(BaseModel):
 
 class TurnoDisponibilidad(BaseModel):
     """Intervalo a consultar antes de reservar."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "inicio": "2099-01-10T09:00:00",
+            "fin": "2099-01-10T09:30:00",
+        },
+    })
 
     inicio: datetime
     fin: datetime

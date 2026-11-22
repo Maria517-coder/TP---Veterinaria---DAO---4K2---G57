@@ -15,10 +15,19 @@ from app.schemas.muestra import (
 )
 from app.services.muestra_service import MuestraService
 
-router = APIRouter(prefix="/muestras", tags=["Muestras"])
+router = APIRouter(prefix="/muestras")
 
 
-@router.get("", response_model=list[MuestraRespuesta])
+@router.get(
+    "",
+    response_model=list[MuestraRespuesta],
+    tags=["Muestras"],
+    summary="Listar muestras con filtros",
+    description=(
+        "Lista muestras con filtros opcionales por estado, clínica, contenedor y fecha. "
+        "Sin errores de dominio: sin resultados devuelve 200 con lista vacía."
+    ),
+)
 def listar_muestras(
     filtros: Annotated[MuestraFiltros, Query()], db: Session = Depends(get_db)
 ) -> list[MuestraBiologica]:
@@ -26,13 +35,31 @@ def listar_muestras(
     return MuestraService(db).listar(filtros)
 
 
-@router.get("/{id}", response_model=MuestraRespuesta)
+@router.get(
+    "/{id}",
+    response_model=MuestraRespuesta,
+    tags=["Muestras"],
+    summary="Obtener una muestra por id",
+    description=(
+        "Devuelve una muestra por su id. "
+        "Errores: 404 si no existe."
+    ),
+)
 def obtener_muestra(id: int, db: Session = Depends(get_db)) -> MuestraBiologica:
     """Devuelve una muestra por su id (E45)."""
     return MuestraService(db).obtener_por_id(id)
 
 
-@router.get("/{id}/historial-estados", response_model=list[CambioEstadoRespuesta])
+@router.get(
+    "/{id}/historial-estados",
+    response_model=list[CambioEstadoRespuesta],
+    tags=["Muestras"],
+    summary="Ver el historial de estados de una muestra",
+    description=(
+        "Devuelve el historial inmutable de cambios de estado de la muestra. "
+        "Errores: 404 si no existe."
+    ),
+)
 def historial_estados(
     id: int, db: Session = Depends(get_db)
 ) -> list[CambioEstado]:
@@ -40,7 +67,17 @@ def historial_estados(
     return MuestraService(db).historial_estados(id)
 
 
-@router.post("/{id}/resultado", response_model=MuestraRespuesta)
+@router.post(
+    "/{id}/resultado",
+    response_model=MuestraRespuesta,
+    tags=["Muestras"],
+    summary="Registrar el resultado de una muestra",
+    description=(
+        "Procesa una muestra Recibida, guarda el texto del resultado y la pasa a Analizada. "
+        "Errores: 404 si no existe la muestra; 409 si no está Recibida o ya fue procesada; "
+        "422 si faltan el texto o el responsable."
+    ),
+)
 def registrar_resultado(
     id: int, datos: ResultadoCrear, db: Session = Depends(get_db)
 ) -> MuestraBiologica:

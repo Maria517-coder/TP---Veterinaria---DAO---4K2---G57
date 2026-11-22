@@ -14,6 +14,13 @@ Responsable = Annotated[
 class RemitoFiltros(BaseModel):
     """Filtros opcionales: estado, clínica de origen y rango de fechas de emisión."""
 
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "estado": "DESPACHADO", "clinica_id": 1,
+            "desde": "2020-05-01", "hasta": "2020-05-31",
+        },
+    })
+
     estado: EstadoRemito | None = None
     clinica_id: int | None = None
     desde: date | None = None
@@ -31,6 +38,10 @@ class RemitoFiltros(BaseModel):
 
 class ResponsableAccion(BaseModel):
     """Responsable de una acción de despacho o recepción (E58/E59)."""
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"responsable": "Recepción"},
+    })
 
     responsable: Responsable
 
