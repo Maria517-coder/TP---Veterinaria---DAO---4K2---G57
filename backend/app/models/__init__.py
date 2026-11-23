@@ -17,11 +17,12 @@ from app.models.remito_biologico import RemitoBiologico
 from app.models.tipo_muestra import TipoMuestra
 from app.models.turno import Turno
 from app.models.vacuna import Vacuna
+from app.models.usuario import Usuario
 from app.models.veterinario import Veterinario
 
 __all__ = [
     "AplicacionVacuna", "CambioEstado", "Cliente", "ClinicaVeterinaria", "Complejidad",
     "ConsultaMedica", "ContenedorEnvio", "Especie", "EstadoCatalogo", "EstadoRemito",
     "HistoriaClinica", "Mascota", "MuestraBiologica", "RedVeterinaria", "RemitoBiologico",
-    "TipoMuestra", "Turno", "Vacuna", "Veterinario",
+    "TipoMuestra", "Turno", "Usuario", "Vacuna", "Veterinario",
 ]

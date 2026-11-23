@@ -19,31 +19,29 @@ Luego abrir en el navegador:
 
 Si el frontend se ve desactualizado, hacer recarga dura con **Ctrl+F5**.
 
+## Autenticación
+
+- El sistema exige inicio de sesión. Sin sesión, cualquier ruta redirige a `#/login`.
+- El token se guarda en `sessionStorage` y se envía en `Authorization: Bearer <token>`.
+- Si la API responde 401, el frontend limpia la sesión y vuelve al login.
+- Al iniciar la app (fuera de tests), si no existe, se crea el usuario `admin` con rol `ADMIN`.
+- Contraseña inicial por defecto de desarrollo: `admin123` (o la variable de entorno `ADMIN_PASSWORD`).
+- La clave de firma de tokens sale de `SECRET_KEY` (por defecto de desarrollo). Cambiar ambas en entornos reales.
+
 ## Estructura
 
-- `index.html`: shell con sidebar y contenedor `#app`.
+- `index.html`: shell con sidebar, sesión y contenedor `#app`.
 - `css/estilos.css`: estilos del diseño aprobado.
-- `js/api.js`: envoltorio de fetch, manejo de errores y descarga de PDFs.
+- `js/api.js`: envoltorio de fetch, auth/sesión, manejo de errores y descarga de PDFs.
 - `js/ui.js`: helpers de DOM (todo texto dinámico con `textContent`).
-- `js/estado.js`: catálogos compartidos (especies hardcodeadas con TODO, clínicas, veterinarios, vacunas, tipos de muestra).
-- `js/router.js`: router por hash (`#/ruta` y `#/ruta/:id`).
-- `js/app.js`: registro de rutas y arranque.
-- `js/vistas/`: una vista por área funcional.
-
-## Flujo manual completo recomendado
-
-1. **Clínica y veterinario**: ir a *Red y clínicas*, crear una clínica si hace falta, entrar a su ficha y agregar un veterinario.
-2. **Cliente y mascota**: ir a *Recepción*, crear cliente y mascota (seleccionando cliente y especie).
-3. **Consulta con muestra**: ir a *Consultorio*, completar clínica/veterinario/cliente/mascota, registrar consulta, revisar aviso de vacunas pendientes si corresponde, agregar una muestra y descargar PDFs si se necesita.
-4. **Contenedor**: ir a *Laboratorio y envíos* → pestaña *Contenedores*, crear contenedor, entrar a su ficha y agregar la muestra Extraída indicando responsable.
-5. **Remito**: desde la ficha del contenedor, generar remito indicando laboratorio destino.
-6. **Despacho**: en la ficha del remito, ingresar responsable y despachar.
-7. **Recepción**: en la ficha del remito despachado, ingresar responsable y registrar recepción. Si el precinto estaba roto, las muestras quedan Rechazadas.
-8. **Resultado**: ir a *Laboratorio y envíos* → *Muestras*, abrir la muestra Recibida y registrar resultado con responsable.
-9. **Reportes**: ir a *Reportes*, seleccionar cada reporte, aplicar filtros opcionales y generar para ver filas y totales.
+- `js/estado.js`: catálogos compartidos (especies hardcodeadas con TODO).
+- `js/router.js`: router por hash con guard de sesión.
+- `js/app.js`: registro de rutas, menú, sesión y arranque.
+- `js/vistas/`: una vista por área funcional, incluyendo `login.js`.
 
 ## Notas
 
 - Las especies están hardcodeadas en `js/estado.js` con un `TODO` hasta que el backend exponga `GET /api/especies`.
 - Los turnos de una mascota se cargan bajo demanda con el botón “Cargar turnos”.
-- Los errores del backend se muestran en español; los 409 de conflicto se muestran visibles en la pantalla.
+- Para rol `VETERINARIO`, se ocultan botones de alta/edición/baja de clínicas y veterinarios; la protección real es del backend.
+- Los errores del backend se muestran en español; 401/403/409 se muestran visibles en pantalla.

@@ -16,6 +16,7 @@ ARCHIVOS_R1 = (
     "js/app.js",
     "js/router.js",
     "js/vistas/inicio.js",
+    "js/vistas/login.js",
 )
 
 HASHES_MENU = (
@@ -37,6 +38,7 @@ def test_el_frontend_esta_servido_bajo_app(client) -> None:
     cuerpo = respuesta.text
     assert 'id="app"' in cuerpo
     assert 'id="sidebar"' in cuerpo
+    assert 'id="sesion-sidebar"' in cuerpo
     for hash_ruta in HASHES_MENU:
         assert hash_ruta in cuerpo, hash_ruta
     assert "/app/js/app.js" in cuerpo
@@ -47,6 +49,7 @@ def test_los_assets_estan_servidos(client) -> None:
         ("/app/js/app.js", "iniciar"),
         ("/app/js/router.js", "registrarRuta"),
         ("/app/js/vistas/inicio.js", "Inicio"),
+        ("/app/js/vistas/login.js", "login"),
         ("/app/css/estilos.css", "--acento"),
     ):
         respuesta = client.get(ruta)

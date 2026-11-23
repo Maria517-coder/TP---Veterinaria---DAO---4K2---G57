@@ -1,6 +1,7 @@
 """Rutas del módulo Contenedores de envío."""
 from typing import Annotated
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -17,7 +18,8 @@ from app.schemas.contenedor import (
 from app.schemas.remito import RemitoRespuesta
 from app.services.contenedor_service import ContenedorService
 
-router = APIRouter(prefix="/contenedores")
+router = APIRouter(prefix="/contenedores",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 def _respuesta(contenedor: ContenedorEnvio) -> ContenedorRespuesta:

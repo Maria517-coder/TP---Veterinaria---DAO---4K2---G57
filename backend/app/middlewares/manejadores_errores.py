@@ -3,8 +3,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.exceptions import (
+    AccesoProhibido,
     ConflictoDeRecurso,
     ErrorDeDominio,
+    NoAutenticado,
     RecursoNoEncontrado,
     ReglaDeNegocioViolada,
     TransicionInvalida,
@@ -17,6 +19,8 @@ _CODIGOS: dict[type[ErrorDeDominio], int] = {
     TurnoSuperpuesto: 409,
     ConflictoDeRecurso: 409,
     ReglaDeNegocioViolada: 422,
+    NoAutenticado: 401,
+    AccesoProhibido: 403,
 }
 
 

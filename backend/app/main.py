@@ -11,6 +11,7 @@ from app.config.settings import settings
 from app.middlewares.cors import configurar_cors
 from app.middlewares.manejadores_errores import registrar_manejadores
 from app.routers import (
+    auth,
     clinicas,
     clientes,
     consultas,
@@ -20,8 +21,12 @@ from app.routers import (
     remitos,
     reportes,
     turnos,
+    usuarios,
 )
+import os
+
 from app.seeds.datos_iniciales import cargar_datos_iniciales
+from app.services.usuario_service import UsuarioService
 
 DESCRIPCION_APP = (
     "API de la red de clínicas veterinarias: administra clientes, mascotas, "
@@ -31,6 +36,10 @@ DESCRIPCION_APP = (
 )
 
 TAGS_OPENAPI = [
+    {
+        "name": "Autenticación",
+        "description": "Inicio de sesión, usuario actual y administración de usuarios.",
+    },
     {
         "name": "Clientes",
         "description": "Responsables de las mascotas: altas, consultas, reemplazos y bajas lógicas.",
@@ -88,6 +97,10 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     with SessionLocal() as db:
         with db.begin():
             cargar_datos_iniciales(db)
+        if os.getenv("TESTING") != "1":
+            UsuarioService(db).asegurar_admin_inicial(
+                os.getenv("ADMIN_PASSWORD", "admin123")
+            )
     yield
 
 
@@ -103,6 +116,7 @@ configurar_cors(app)
 registrar_manejadores(app)
 
 for modulo in (
+    auth,
     clinicas,
     clientes,
     mascotas,
@@ -112,6 +126,7 @@ for modulo in (
     contenedores,
     remitos,
     reportes,
+    usuarios,
 ):
     app.include_router(modulo.router, prefix="/api")
 

@@ -1,5 +1,6 @@
 """Rutas del módulo Mascotas.
 Este módulo agrupa varios recursos: no tiene prefijo y las rutas se declaran completas."""
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -21,7 +22,7 @@ from app.models.aplicacion_vacuna import AplicacionVacuna
 from app.schemas.vacuna import VacunaCrear, VacunaRespuesta, VacunacionCrear, VacunacionRespuesta
 from app.services.vacuna_service import VacunaService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(obtener_usuario_actual)])
 
 
 @router.get(

@@ -1,6 +1,7 @@
 """Rutas del módulo Reportes."""
 from typing import Annotated
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -8,7 +9,8 @@ from app.config.database import get_db
 from app.schemas.reporte import FiltroReporteRequest, ReporteRespuesta
 from app.services.reporte_service import ReporteService
 
-router = APIRouter(prefix="/reportes")
+router = APIRouter(prefix="/reportes",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 @router.get(

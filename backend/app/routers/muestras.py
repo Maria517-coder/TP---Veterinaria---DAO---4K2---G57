@@ -1,6 +1,7 @@
 """Rutas del módulo Muestras y trazabilidad."""
 from typing import Annotated
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -15,7 +16,8 @@ from app.schemas.muestra import (
 )
 from app.services.muestra_service import MuestraService
 
-router = APIRouter(prefix="/muestras")
+router = APIRouter(prefix="/muestras",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 @router.get(

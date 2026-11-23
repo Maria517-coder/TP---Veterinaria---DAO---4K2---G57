@@ -1,4 +1,5 @@
 """Rutas del módulo Clientes."""
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -7,7 +8,8 @@ from app.models.cliente import Cliente
 from app.schemas.cliente import ClienteActualizar, ClienteCrear, ClienteRespuesta
 from app.services.cliente_service import ClienteService
 
-router = APIRouter(prefix="/clientes")
+router = APIRouter(prefix="/clientes",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 @router.post(
