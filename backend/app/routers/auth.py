@@ -30,9 +30,20 @@ def login(datos: LoginRequest, db: Session = Depends(get_db)) -> dict:
     response_model=UsuarioRespuesta,
     summary="Obtener el usuario actual",
     description=(
-        "Devuelve los datos del usuario autenticado por el token Bearer. "
-        "Errores: 401 si el token falta, es inválido o está vencido."
+        "Devuelve los datos del usuario autenticado por el token Bearer, "
+        "incluyendo veterinario_id y nombre del veterinario cuando corresponde. "
+        "Errores: 401 si el token falta, es inv?lido o est? vencido."
     ),
 )
-def yo(usuario: Usuario = Depends(obtener_usuario_actual)) -> Usuario:
-    return usuario
+def yo(usuario: Usuario = Depends(obtener_usuario_actual)) -> dict:
+    veterinario_nombre = None
+    if usuario.veterinario_id is not None and usuario.veterinario is not None:
+        veterinario_nombre = usuario.veterinario.nombre
+    return {
+        "id": usuario.id,
+        "nombre_usuario": usuario.nombre_usuario,
+        "rol": usuario.rol,
+        "activo": usuario.activo,
+        "veterinario_id": usuario.veterinario_id,
+        "veterinario_nombre": veterinario_nombre,
+    }

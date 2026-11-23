@@ -1,8 +1,8 @@
 """Usuario del sistema con rol y credenciales hasheadas."""
 import enum
 
-from sqlalchemy import Boolean, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
 
@@ -24,3 +24,8 @@ class Usuario(Base):
     contrasena_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[str] = mapped_column(String(20), nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    veterinario_id: Mapped[int | None] = mapped_column(
+        ForeignKey("veterinario.id"), unique=True, nullable=True, default=None
+    )
+
+    veterinario = relationship("Veterinario")

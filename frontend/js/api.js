@@ -41,6 +41,16 @@ export function esAdmin() {
   return Boolean(sesion && sesion.rol === "ADMIN");
 }
 
+export function esVeterinario() {
+  const sesion = leerSesion();
+  return Boolean(sesion && sesion.rol === "VETERINARIO");
+}
+
+export function obtenerVeterinarioId() {
+  const sesion = leerSesion();
+  return sesion ? sesion.veterinario_id : null;
+}
+
 function rutaLegible(loc) {
   if (!Array.isArray(loc)) return "";
   return loc

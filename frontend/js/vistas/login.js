@@ -42,6 +42,7 @@ export async function montarLogin() {
         token: respuesta.token,
         rol: respuesta.rol,
         usuario: usuario.value.trim(),
+        veterinario_id: respuesta.veterinario_id ?? null,
       });
       window.location.hash = "#/inicio";
     } catch (error) {

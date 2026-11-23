@@ -13,15 +13,27 @@ Nombre = Annotated[
 ]
 
 
+class AccesoVeterinario(BaseModel):
+    """Credenciales opcionales para crear el usuario del veterinario."""
+
+    nombre_usuario: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
+    contrasena: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+
+
 class VeterinarioCrear(BaseModel):
     """Datos de entrada para dar de alta un veterinario."""
 
     model_config = ConfigDict(json_schema_extra={
-        "example": {"matricula": "MP-1234", "nombre": "Dra. Ana Pérez"},
+        "example": {
+            "matricula": "MP-1234",
+            "nombre": "Dra. Ana P?rez",
+            "acceso": {"nombre_usuario": "vet1", "contrasena": "secreta123"},
+        },
     })
 
     matricula: Matricula
     nombre: Nombre
+    acceso: AccesoVeterinario | None = None
 
 
 class VeterinarioActualizar(BaseModel):

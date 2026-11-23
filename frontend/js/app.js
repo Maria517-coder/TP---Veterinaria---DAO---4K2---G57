@@ -1,5 +1,5 @@
 /* Punto de entrada: sidebar, rutas, guard de sesión y arranque del router. */
-import { limpiarSesion, obtenerSesion } from "./api.js";
+import { esVeterinario, limpiarSesion, obtenerSesion } from "./api.js";
 import { iniciarRouter, obtenerRutaActual, registrarRuta } from "./router.js";
 import { crearElemento, limpiar } from "./ui.js";
 import { montarClinicaDetalle, montarClinicas } from "./vistas/clinicas.js";
@@ -43,7 +43,10 @@ function areaDeRuta(ruta) {
 
 function actualizarMenu() {
   const area = areaDeRuta(obtenerRutaActual());
+  const vet = esVeterinario();
   document.querySelectorAll(".menu-item").forEach((enlace) => {
+    const esReportes = enlace.dataset.ruta === "reportes";
+    enlace.classList.toggle("oculto", vet && esReportes);
     const activa = enlace.dataset.ruta === area;
     enlace.classList.toggle("activo", activa);
     if (activa) {

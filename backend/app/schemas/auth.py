@@ -21,16 +21,23 @@ class LoginRequest(BaseModel):
 class TokenRespuesta(BaseModel):
     token: str
     rol: str
+    veterinario_id: int | None = None
 
 
 class UsuarioCrear(BaseModel):
     model_config = ConfigDict(json_schema_extra={
-        "example": {"nombre_usuario": "vet1", "contrasena": "secreta123", "rol": "VETERINARIO"},
+        "example": {
+            "nombre_usuario": "vet1",
+            "contrasena": "secreta123",
+            "rol": "VETERINARIO",
+            "veterinario_id": 1,
+        },
     })
 
     nombre_usuario: NombreUsuario
     contrasena: Contrasena
     rol: RolUsuario
+    veterinario_id: int | None = None
 
 
 class UsuarioRespuesta(BaseModel):
@@ -40,3 +47,5 @@ class UsuarioRespuesta(BaseModel):
     nombre_usuario: str
     rol: str
     activo: bool
+    veterinario_id: int | None = None
+    veterinario_nombre: str | None = None

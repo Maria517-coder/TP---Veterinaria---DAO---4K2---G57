@@ -219,6 +219,7 @@ def listar_tipos_muestra(db: Session = Depends(get_db)) -> list[TipoMuestra]:
 
 @router.post(
     "/tipos-muestra",
+    dependencies=[Depends(requiere_admin)],
     response_model=TipoMuestraRespuesta,
     status_code=status.HTTP_201_CREATED,
     tags=["Tipos de muestra"],
@@ -238,6 +239,7 @@ def crear_tipo_muestra(
 
 @router.put(
     "/tipos-muestra/{id}",
+    dependencies=[Depends(requiere_admin)],
     response_model=TipoMuestraRespuesta,
     tags=["Tipos de muestra"],
     summary="Reemplazar un tipo de muestra",

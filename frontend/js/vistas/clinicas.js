@@ -100,17 +100,29 @@ async function tabVeterinarios(panel, clinica, mensajesGlobal) {
     form.appendChild(crearElemento("h3", "Agregar veterinario"));
     const fila = crearElemento("div", "", "fila");
     const matricula = entradaTexto("MP-1234"); matricula.id = `mat-${clinica.id}`;
-    const nombre = entradaTexto("Dra. Ana Pérez"); nombre.id = `nom-vet-${clinica.id}`;
-    fila.appendChild(campo("Matrícula", matricula, matricula.id));
+    const nombre = entradaTexto("Dra. Ana P?rez"); nombre.id = `nom-vet-${clinica.id}`;
+    fila.appendChild(campo("Matr?cula", matricula, matricula.id));
     fila.appendChild(campo("Nombre", nombre, nombre.id));
     form.appendChild(fila);
+
+    const filaAcceso = crearElemento("div", "", "fila");
+    const usuarioVet = entradaTexto("Usuario (opcional)"); usuarioVet.id = `usr-vet-${clinica.id}`;
+    const passVet = entradaTexto("Contrase?a (opcional)", "password"); passVet.id = `pass-vet-${clinica.id}`;
+    filaAcceso.appendChild(campo("Usuario de acceso (opcional)", usuarioVet, usuarioVet.id));
+    filaAcceso.appendChild(campo("Contrase?a de acceso (opcional)", passVet, passVet.id));
+    form.appendChild(filaAcceso);
+
     const acciones = crearElemento("div", "", "bloque-acciones");
     agregarBoton(acciones, "Agregar veterinario", async () => {
       try {
-        await api(`/clinicas/${clinica.id}/veterinarios`, {
-          method: "POST", body: { matricula: matricula.value, nombre: nombre.value },
-        });
-        matricula.value = ""; nombre.value = "";
+        const body = { matricula: matricula.value, nombre: nombre.value };
+        const usr = usuarioVet.value.trim();
+        const pwd = passVet.value;
+        if (usr || pwd) {
+          body.acceso = { nombre_usuario: usr, contrasena: pwd };
+        }
+        await api(`/clinicas/${clinica.id}/veterinarios`, { method: "POST", body });
+        matricula.value = ""; nombre.value = ""; usuarioVet.value = ""; passVet.value = "";
         mensaje(localMsg, "Veterinario agregado.", "ok");
         await listar();
       } catch (error) { mensaje(localMsg, error.message, "error"); }
