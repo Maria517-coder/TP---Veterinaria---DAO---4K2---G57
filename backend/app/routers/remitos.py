@@ -1,6 +1,7 @@
 """Rutas del módulo Remitos biológicos."""
 from typing import Annotated
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -15,7 +16,8 @@ from app.schemas.remito import (
 )
 from app.services.remito_service import RemitoService
 
-router = APIRouter(prefix="/remitos")
+router = APIRouter(prefix="/remitos",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 def _respuesta_pdf() -> dict:

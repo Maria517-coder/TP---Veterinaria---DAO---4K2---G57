@@ -1,5 +1,7 @@
-/* Punto de entrada: sidebar, rutas y arranque del router. */
+/* Punto de entrada: sidebar, rutas, guard de sesión y arranque del router. */
+import { limpiarSesion, obtenerSesion } from "./api.js";
 import { iniciarRouter, obtenerRutaActual, registrarRuta } from "./router.js";
+import { crearElemento, limpiar } from "./ui.js";
 import { montarClinicaDetalle, montarClinicas } from "./vistas/clinicas.js";
 import { montarConsultaDetalle, montarConsultorio } from "./vistas/consultorio.js";
 import { montarInicio } from "./vistas/inicio.js";
@@ -9,11 +11,13 @@ import {
   montarMuestraDetalle,
   montarRemitoDetalle,
 } from "./vistas/laboratorio.js";
+import { montarLogin } from "./vistas/login.js";
 import { montarMascotaDetalle, montarRecepcion } from "./vistas/recepcion.js";
 import { montarReportes } from "./vistas/reportes.js";
 import { montarTurnos } from "./vistas/turnos.js";
 
 const TITULOS = {
+  login: "Iniciar sesión",
   inicio: "Inicio",
   clinicas: "Red y clínicas",
   recepcion: "Recepción",
@@ -52,14 +56,44 @@ function actualizarMenu() {
   if (titulo) titulo.textContent = TITULOS[area] || "Red veterinaria";
 }
 
+function actualizarSesionSidebar() {
+  const cont = document.getElementById("sesion-sidebar");
+  if (!cont) return;
+  limpiar(cont);
+  const sesion = obtenerSesion();
+  if (!sesion) {
+    cont.classList.add("oculto");
+    return;
+  }
+  cont.classList.remove("oculto");
+  const info = crearElemento("p", "", "sesion-info");
+  info.textContent = `${sesion.usuario || "Usuario"} (${sesion.rol || ""})`;
+  cont.appendChild(info);
+  const boton = crearElemento("button", "Cerrar sesión", "boton boton-secundario boton-cerrar-sesion");
+  boton.type = "button";
+  boton.addEventListener("click", () => {
+    limpiarSesion();
+    window.location.hash = "#/login";
+  });
+  cont.appendChild(boton);
+}
+
+function actualizarModoLogin() {
+  const esLogin = areaDeRuta(obtenerRutaActual()) === "login";
+  document.body.classList.toggle("modo-login", esLogin);
+}
+
 function registrar(patron, render) {
   registrarRuta(patron, async (ctx) => {
+    actualizarModoLogin();
     actualizarMenu();
+    actualizarSesionSidebar();
     await render(ctx);
   });
 }
 
 async function iniciar() {
+  registrar("/login", montarLogin);
   registrar("/inicio", montarInicio);
   registrar("/clinicas", montarClinicas);
   registrar("/clinicas/:id", montarClinicaDetalle);

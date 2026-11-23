@@ -3,6 +3,7 @@ Este módulo agrupa varios recursos: no tiene prefijo y las rutas se declaran co
 from datetime import date
 from typing import Annotated
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.models.turno import Turno
 from app.schemas.turno import TurnoCrear, TurnoDisponibilidad, TurnoRespuesta
 from app.services.turno_service import TurnoService
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(obtener_usuario_actual)])
 
 
 @router.post(

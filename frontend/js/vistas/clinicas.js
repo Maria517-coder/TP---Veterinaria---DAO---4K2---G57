@@ -1,5 +1,5 @@
 /* R2: Red y clínicas - lista y ficha con tabs. */
-import { api } from "../api.js";
+import { api, esAdmin } from "../api.js";
 import { cargarCatalogos, obtenerEstado } from "../estado.js";
 import {
   agregarBoton, campo, crearElemento, crearTarjeta, entradaTexto, etiquetaEstadoRemito,
@@ -18,21 +18,23 @@ export async function montarClinicas() {
   const mensajes = crearElemento("div");
   app.appendChild(mensajes);
 
-  const formTarjeta = crearTarjeta("Nueva clínica");
-  const nombre = entradaTexto("Nombre de la clínica");
-  nombre.id = "clinica-nombre";
-  formTarjeta.appendChild(campo("Nombre", nombre, "clinica-nombre"));
-  agregarBoton(formTarjeta, "Crear clínica", async () => {
-    try {
-      await api("/red/clinicas", { method: "POST", body: { nombre: nombre.value } });
-      nombre.value = "";
-      mensaje(mensajes, "Clínica creada correctamente.", "ok");
-      await renderLista();
-    } catch (error) {
-      mensaje(mensajes, error.message, "error");
-    }
-  });
-  app.appendChild(formTarjeta);
+  if (esAdmin()) {
+    const formTarjeta = crearTarjeta("Nueva clínica");
+    const nombre = entradaTexto("Nombre de la clínica");
+    nombre.id = "clinica-nombre";
+    formTarjeta.appendChild(campo("Nombre", nombre, "clinica-nombre"));
+    agregarBoton(formTarjeta, "Crear clínica", async () => {
+      try {
+        await api("/red/clinicas", { method: "POST", body: { nombre: nombre.value } });
+        nombre.value = "";
+        mensaje(mensajes, "Clínica creada correctamente.", "ok");
+        await renderLista();
+      } catch (error) {
+        mensaje(mensajes, error.message, "error");
+      }
+    });
+    app.appendChild(formTarjeta);
+  }
 
   const listaTarjeta = crearTarjeta("Clínicas registradas");
   const contLista = crearElemento("div");
@@ -93,27 +95,29 @@ async function tabVeterinarios(panel, clinica, mensajesGlobal) {
   const localMsg = crearElemento("div");
   panel.appendChild(localMsg);
 
-  const form = crearElemento("div", "", "seccion");
-  form.appendChild(crearElemento("h3", "Agregar veterinario"));
-  const fila = crearElemento("div", "", "fila");
-  const matricula = entradaTexto("MP-1234"); matricula.id = `mat-${clinica.id}`;
-  const nombre = entradaTexto("Dra. Ana Pérez"); nombre.id = `nom-vet-${clinica.id}`;
-  fila.appendChild(campo("Matrícula", matricula, matricula.id));
-  fila.appendChild(campo("Nombre", nombre, nombre.id));
-  form.appendChild(fila);
-  const acciones = crearElemento("div", "", "bloque-acciones");
-  agregarBoton(acciones, "Agregar veterinario", async () => {
-    try {
-      await api(`/clinicas/${clinica.id}/veterinarios`, {
-        method: "POST", body: { matricula: matricula.value, nombre: nombre.value },
-      });
-      matricula.value = ""; nombre.value = "";
-      mensaje(localMsg, "Veterinario agregado.", "ok");
-      await listar();
-    } catch (error) { mensaje(localMsg, error.message, "error"); }
-  });
-  form.appendChild(acciones);
-  panel.appendChild(form);
+  if (esAdmin()) {
+    const form = crearElemento("div", "", "seccion");
+    form.appendChild(crearElemento("h3", "Agregar veterinario"));
+    const fila = crearElemento("div", "", "fila");
+    const matricula = entradaTexto("MP-1234"); matricula.id = `mat-${clinica.id}`;
+    const nombre = entradaTexto("Dra. Ana Pérez"); nombre.id = `nom-vet-${clinica.id}`;
+    fila.appendChild(campo("Matrícula", matricula, matricula.id));
+    fila.appendChild(campo("Nombre", nombre, nombre.id));
+    form.appendChild(fila);
+    const acciones = crearElemento("div", "", "bloque-acciones");
+    agregarBoton(acciones, "Agregar veterinario", async () => {
+      try {
+        await api(`/clinicas/${clinica.id}/veterinarios`, {
+          method: "POST", body: { matricula: matricula.value, nombre: nombre.value },
+        });
+        matricula.value = ""; nombre.value = "";
+        mensaje(localMsg, "Veterinario agregado.", "ok");
+        await listar();
+      } catch (error) { mensaje(localMsg, error.message, "error"); }
+    });
+    form.appendChild(acciones);
+    panel.appendChild(form);
+  }
 
   const listado = crearElemento("div", "", "seccion");
   listado.appendChild(crearElemento("h3", "Veterinarios de la clínica"));

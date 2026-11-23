@@ -1,5 +1,45 @@
-/*Envoltorio de fetch: unifica errores del backend y descarga PDFs.*/
+/* Envoltorio de fetch: auth, errores del backend y descarga de PDFs. */
 const BASE = "/api";
+const CLAVE_SESION = "veterinaria_sesion";
+
+function leerSesion() {
+  try {
+    const crudo = sessionStorage.getItem(CLAVE_SESION);
+    return crudo ? JSON.parse(crudo) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+export function obtenerSesion() {
+  return leerSesion();
+}
+
+export function guardarSesion(sesion) {
+  try {
+    sessionStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+  } catch (_error) {
+    // sessionStorage puede no estar disponible; la app seguirá pidiendo login.
+  }
+}
+
+export function limpiarSesion() {
+  try {
+    sessionStorage.removeItem(CLAVE_SESION);
+  } catch (_error) {
+    // sin efecto
+  }
+}
+
+export function haySesion() {
+  const sesion = leerSesion();
+  return Boolean(sesion && sesion.token);
+}
+
+export function esAdmin() {
+  const sesion = leerSesion();
+  return Boolean(sesion && sesion.rol === "ADMIN");
+}
 
 function rutaLegible(loc) {
   if (!Array.isArray(loc)) return "";
@@ -15,7 +55,7 @@ export function formatearError(datos, status) {
       typeof datos.detalle === "string" &&
       datos.detalle.trim()
     ) {
-      return `${status} · ${datos.detalle}`;
+      return `${status} - ${datos.detalle}`;
     }
     if (
       Object.prototype.hasOwnProperty.call(datos, "detail") &&
@@ -26,20 +66,32 @@ export function formatearError(datos, status) {
         const mensaje = item && item.msg ? item.msg : "Valor inválido";
         return ruta ? `${ruta}: ${mensaje}` : mensaje;
       });
-      return `${status} · ${partes.join("; ")}`;
+      return `${status} - ${partes.join("; ")}`;
     }
     if (
       Object.prototype.hasOwnProperty.call(datos, "detail") &&
       typeof datos.detail === "string" &&
       datos.detail.trim()
     ) {
-      return `${status} · ${datos.detail}`;
+      return `${status} - ${datos.detail}`;
     }
   }
-  return `${status} · No se pudo interpretar la respuesta del servidor`;
+  return `${status} - No se pudo interpretar la respuesta del servidor`;
 }
 
-async function responder(respuesta) {
+function manejar401(ruta) {
+  if (ruta === "/auth/login") return false;
+  limpiarSesion();
+  if (window.location.hash !== "#/login") {
+    window.location.hash = "#/login";
+  }
+  return true;
+}
+
+async function responder(respuesta, ruta) {
+  if (respuesta.status === 401 && manejar401(ruta)) {
+    throw new Error("401 - Sesión vencida o inválida. Volvé a iniciar sesión.");
+  }
   if (respuesta.status === 204) return null;
 
   const tipo = respuesta.headers.get("content-type") || "";
@@ -59,6 +111,10 @@ async function responder(respuesta) {
 export async function api(ruta, opciones = {}) {
   const { method = "GET", body } = opciones;
   const configura = { method, headers: {} };
+  const sesion = leerSesion();
+  if (sesion && sesion.token) {
+    configura.headers["Authorization"] = `Bearer ${sesion.token}`;
+  }
 
   if (body !== undefined) {
     configura.headers["Content-Type"] = "application/json";
@@ -68,21 +124,29 @@ export async function api(ruta, opciones = {}) {
   let respuesta;
   try {
     respuesta = await fetch(`${BASE}${ruta}`, configura);
-  } catch (error) {
+  } catch (_error) {
     throw new Error("No se pudo conectar con la API. Levantá el servidor desde backend/.");
   }
-  return responder(respuesta);
+  return responder(respuesta, ruta);
 }
 
 export async function descargarPdf(ruta, nombre) {
+  const sesion = leerSesion();
+  const headers = {};
+  if (sesion && sesion.token) {
+    headers["Authorization"] = `Bearer ${sesion.token}`;
+  }
   let respuesta;
   try {
-    respuesta = await fetch(`${BASE}${ruta}`);
-  } catch (error) {
+    respuesta = await fetch(`${BASE}${ruta}`, { headers });
+  } catch (_error) {
     throw new Error("No se pudo conectar con la API. Levantá el servidor desde backend/.");
   }
 
-  if (!respuesta.ok) return responder(respuesta);
+  if (respuesta.status === 401 && manejar401(ruta)) {
+    throw new Error("401 - Sesión vencida o inválida. Volvé a iniciar sesión.");
+  }
+  if (!respuesta.ok) return responder(respuesta, ruta);
 
   const archivo = await respuesta.blob();
   const url = URL.createObjectURL(archivo);

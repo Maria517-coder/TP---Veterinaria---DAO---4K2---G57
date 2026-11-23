@@ -1,5 +1,6 @@
 """Rutas del módulo Red, clínicas, veterinarios y tipos de muestra.
 Este módulo agrupa varios recursos: no tiene prefijo y las rutas se declaran completas."""
+from app.core.dependencias import obtener_usuario_actual, requiere_admin
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -34,7 +35,7 @@ from app.models.red_veterinaria import RedVeterinaria
 from app.models.tipo_muestra import TipoMuestra
 from app.models.veterinario import Veterinario
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(obtener_usuario_actual)])
 
 # ================================
 # Red y Clínicas (E20-E24)
@@ -56,6 +57,7 @@ def obtener_red(db: Session = Depends(get_db)) -> RedVeterinaria:
 
 @router.post(
     "/red/clinicas",
+    dependencies=[Depends(requiere_admin)],
     response_model=ClinicaVeterinariaRespuesta,
     status_code=status.HTTP_201_CREATED,
     tags=["Clínicas y veterinarios"],
@@ -105,6 +107,7 @@ def obtener_clinica(id: int, db: Session = Depends(get_db)) -> ClinicaVeterinari
 
 @router.put(
     "/clinicas/{id}",
+    dependencies=[Depends(requiere_admin)],
     response_model=ClinicaVeterinariaRespuesta,
     tags=["Clínicas y veterinarios"],
     summary="Reemplazar el nombre de una clínica",
@@ -126,6 +129,7 @@ def actualizar_clinica(
 # ================================
 @router.post(
     "/clinicas/{id}/veterinarios",
+    dependencies=[Depends(requiere_admin)],
     response_model=VeterinarioRespuesta,
     status_code=status.HTTP_201_CREATED,
     tags=["Clínicas y veterinarios"],
@@ -162,6 +166,7 @@ def listar_veterinarios_clinica(
 
 @router.put(
     "/veterinarios/{id}",
+    dependencies=[Depends(requiere_admin)],
     response_model=VeterinarioRespuesta,
     tags=["Clínicas y veterinarios"],
     summary="Reemplazar los datos de un veterinario",
@@ -180,6 +185,7 @@ def actualizar_veterinario(
 
 @router.delete(
     "/veterinarios/{id}",
+    dependencies=[Depends(requiere_admin)],
     status_code=status.HTTP_204_NO_CONTENT,
     tags=["Clínicas y veterinarios"],
     summary="Dar de baja un veterinario",

@@ -1,4 +1,6 @@
 /* Router por hash: soporta rutas estáticas y con :param. */
+import { haySesion } from "./api.js";
+
 const rutas = [];
 
 export function registrarRuta(patron, render) {
@@ -30,6 +32,10 @@ export function obtenerRutaActual() {
 
 async function resolver() {
   const ruta = parsearHash();
+  if (ruta !== "/login" && !haySesion()) {
+    navegar("/login");
+    return;
+  }
   for (const entrada of rutas) {
     const coincide = ruta.match(entrada.regex);
     if (coincide) {
@@ -41,7 +47,7 @@ async function resolver() {
       return;
     }
   }
-  navegar("/inicio");
+  navegar(haySesion() ? "/inicio" : "/login");
 }
 
 export function iniciarRouter() {

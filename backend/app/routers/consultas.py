@@ -2,6 +2,7 @@
 from datetime import date
 from decimal import Decimal
 
+from app.core.dependencias import obtener_usuario_actual
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -19,7 +20,8 @@ from app.schemas.consulta import (
 )
 from app.services.consulta_service import ConsultaService
 
-router = APIRouter(prefix="/consultas")
+router = APIRouter(prefix="/consultas",
+    dependencies=[Depends(obtener_usuario_actual)],)
 
 
 def _respuesta_pdf() -> dict:
