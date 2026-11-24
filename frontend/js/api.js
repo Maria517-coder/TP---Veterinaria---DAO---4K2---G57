@@ -51,6 +51,11 @@ export function obtenerVeterinarioId() {
   return sesion ? sesion.veterinario_id : null;
 }
 
+export function obtenerClinicaId() {
+  const sesion = leerSesion();
+  return sesion ? sesion.clinica_id : null;
+}
+
 function rutaLegible(loc) {
   if (!Array.isArray(loc)) return "";
   return loc

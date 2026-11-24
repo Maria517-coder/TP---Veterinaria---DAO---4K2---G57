@@ -1,4 +1,4 @@
-"""Casos de uso del m?dulo Veterinarios."""
+"""Casos de uso del módulo Veterinarios."""
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -21,10 +21,10 @@ class VeterinarioService:
     def crear_en_clinica(
         self, clinica_id: int, datos: VeterinarioCrear
     ) -> Veterinario:
-        """E25: alta en la cl?nica; con acceso opcional crea veterinario y usuario en la misma transacci?n."""
+        """E25: alta en la clínica; con acceso opcional crea veterinario y usuario en la misma transacción."""
         clinica = self.repository.buscar_clinica_por_id(clinica_id)
         if clinica is None:
-            raise RecursoNoEncontrado(f"No existe la cl?nica {clinica_id}")
+            raise RecursoNoEncontrado(f"No existe la clínica {clinica_id}")
         self._validar_matricula_disponible(datos.matricula)
         veterinario = Veterinario(
             clinica=clinica,
@@ -52,9 +52,9 @@ class VeterinarioService:
         return veterinario
 
     def listar_por_clinica(self, clinica_id: int) -> list[Veterinario]:
-        """E26: lista los veterinarios activos de una cl?nica existente."""
+        """E26: lista los veterinarios activos de una clínica existente."""
         if self.repository.buscar_clinica_por_id(clinica_id) is None:
-            raise RecursoNoEncontrado(f"No existe la cl?nica {clinica_id}")
+            raise RecursoNoEncontrado(f"No existe la clínica {clinica_id}")
         return self.repository.listar_veterinarios_por_clinica(clinica_id)
 
     def obtener(self, veterinario_id: int) -> Veterinario:
@@ -67,7 +67,7 @@ class VeterinarioService:
     def actualizar(
         self, veterinario_id: int, datos: VeterinarioActualizar
     ) -> Veterinario:
-        """E27: reemplaza matr?cula y nombre, sin chocar con otro veterinario."""
+        """E27: reemplaza matrícula y nombre, sin chocar con otro veterinario."""
         veterinario = self.obtener(veterinario_id)
         self._validar_matricula_disponible(datos.matricula, veterinario.id)
         veterinario.matricula = datos.matricula
@@ -75,7 +75,7 @@ class VeterinarioService:
         return self._persistir(veterinario)
 
     def eliminar(self, veterinario_id: int) -> None:
-        """E28: baja l?gica; tambi?n desactiva el usuario vinculado para que no pueda iniciar sesi?n."""
+        """E28: baja lógica; también desactiva el usuario vinculado para que no pueda iniciar sesión."""
         veterinario = self.obtener(veterinario_id)
         try:
             veterinario.activo = False
@@ -94,13 +94,13 @@ class VeterinarioService:
     def _validar_matricula_disponible(
         self, matricula: str, veterinario_id: int | None = None
     ) -> None:
-        """La matr?cula es exactamente ?nica, incluso entre inactivos."""
+        """La matrícula es exactamente única, incluso entre inactivos."""
         existente = self.repository.buscar_veterinario_por_matricula(matricula)
         if existente is not None and existente.id != veterinario_id:
-            raise ConflictoDeRecurso(f"Ya existe el veterinario con matr?cula {matricula}")
+            raise ConflictoDeRecurso(f"Ya existe el veterinario con matrícula {matricula}")
 
     def _persistir(self, veterinario: Veterinario) -> Veterinario:
-        """Guarda y confirma; ante cualquier error deshace la transacci?n."""
+        """Guarda y confirma; ante cualquier error deshace la transacción."""
         try:
             self.repository.guardar(veterinario)
             self.db.commit()

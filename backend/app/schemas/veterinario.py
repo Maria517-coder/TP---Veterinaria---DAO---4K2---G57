@@ -17,7 +17,7 @@ class AccesoVeterinario(BaseModel):
     """Credenciales opcionales para crear el usuario del veterinario."""
 
     nombre_usuario: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
-    contrasena: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    contrasena: Annotated[str, StringConstraints(min_length=8, max_length=128)]
 
 
 class VeterinarioCrear(BaseModel):
@@ -26,7 +26,7 @@ class VeterinarioCrear(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "matricula": "MP-1234",
-            "nombre": "Dra. Ana P?rez",
+            "nombre": "Dra. Ana Pérez",
             "acceso": {"nombre_usuario": "vet1", "contrasena": "secreta123"},
         },
     })

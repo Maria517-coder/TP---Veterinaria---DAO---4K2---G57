@@ -113,10 +113,10 @@ def test_health_y_login_andan_sin_token(client_sin_auth) -> None:
 
 def test_veterinario_no_puede_crear_clinica_ni_veterinario_y_admin_si(db, client_sin_auth) -> None:
     _crear_usuario(db, "admin1", "adminpass", RolUsuario.ADMIN)
-    _crear_usuario(db, "vet1", "vetpass", RolUsuario.VETERINARIO)
+    _crear_usuario(db, "vet1", "vetpass1", RolUsuario.VETERINARIO)
 
     token_admin = _login(client_sin_auth, "admin1", "adminpass").json()["token"]
-    token_vet = _login(client_sin_auth, "vet1", "vetpass").json()["token"]
+    token_vet = _login(client_sin_auth, "vet1", "vetpass1").json()["token"]
 
     r_vet_clinica = client_sin_auth.post(
         "/api/red/clinicas", json={"nombre": "Clinica Vet"}, headers=_auth_header(token_vet)

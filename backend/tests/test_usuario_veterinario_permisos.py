@@ -1,4 +1,4 @@
-"""Tests de vinculaci?n Usuario-Veterinario y permisos por rol."""
+"""Tests de vinculación Usuario-Veterinario y permisos por rol."""
 import pytest
 from fastapi.testclient import TestClient
 
@@ -64,8 +64,8 @@ def _setup_admin_vet(db, client_sin_auth):
     r_vet = _crear_veterinario(client_sin_auth, h_admin, clinica["id"], matricula="MAT-V1", nombre="Dra. Ana")
     assert r_vet.status_code == 201, r_vet.text
     vet = r_vet.json()
-    _crear_usuario(db, "vet1", "vetpass", RolUsuario.VETERINARIO, veterinario_id=vet["id"])
-    token_vet = _login(client_sin_auth, "vet1", "vetpass").json()["token"]
+    _crear_usuario(db, "vet1", "vetpass1", RolUsuario.VETERINARIO, veterinario_id=vet["id"])
+    token_vet = _login(client_sin_auth, "vet1", "vetpass1").json()["token"]
     return {
         "h_admin": h_admin,
         "h_vet": _auth(token_vet),
@@ -142,6 +142,8 @@ def test_alta_veterinario_con_acceso_crea_ambos(db, client_sin_auth):
     yo = r_yo.json()
     assert yo["veterinario_id"] == vet["id"]
     assert yo["veterinario_nombre"] == "Dra. Ana"
+    assert yo["clinica_id"] == clinica["id"]
+    assert yo["clinica_nombre"] == clinica["nombre"]
 
 
 def test_alta_veterinario_sin_acceso_crea_solo_veterinario(db, client_sin_auth):
@@ -176,7 +178,7 @@ def test_baja_veterinario_desactiva_usuario_y_login_falla(db, client_sin_auth):
     ctx = _setup_admin_vet(db, client_sin_auth)
     r_del = client_sin_auth.delete(f"/api/veterinarios/{ctx['vet']['id']}", headers=ctx["h_admin"])
     assert r_del.status_code == 204
-    r_login = _login(client_sin_auth, "vet1", "vetpass")
+    r_login = _login(client_sin_auth, "vet1", "vetpass1")
     assert r_login.status_code == 401
 
 
@@ -275,7 +277,7 @@ def test_veterinario_no_puede_crear_tipo_muestra(db, client_sin_auth):
 
 def test_usuario_veterinario_con_veterinario_dado_de_baja_da_404(db, client_sin_auth):
     ctx = _setup_admin_vet(db, client_sin_auth)
-    # dar de baja al vet (esto desactiva su usuario tambi?n, pero el vet queda inactivo)
+    # dar de baja al vet (esto desactiva su usuario también, pero el vet queda inactivo)
     # crear otro vet para darlo de baja
     r_vet2 = _crear_veterinario(client_sin_auth, ctx["h_admin"], ctx["clinica"]["id"], matricula="MAT-BAJA", nombre="Dr. Baja")
     assert r_vet2.status_code == 201

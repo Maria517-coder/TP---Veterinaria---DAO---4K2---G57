@@ -91,8 +91,8 @@ def obtener_contenedor(id: int, db: Session = Depends(get_db)) -> ContenedorResp
     description=(
         "Agrega una muestra Extraida al contenedor; todas las muestras deben ser de la "
         "misma clínica de origen y pasan a Empaquetada. "
-        "Errores: 404 si no existen el contenedor o la muestra; 409 si ya se generó el "
-        "remito o el precinto está roto; 422 si la muestra no está Extraida o es de otra clínica."
+        "Errores: 404 si no existen el contenedor o la muestra; 409 si ya se gener? el "
+        "remito, el precinto está roto o la muestra no está Extraida; 422 si es de otra clínica."
     ),
 )
 def agregar_muestra(

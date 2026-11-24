@@ -1,4 +1,4 @@
-"""Rutas del m?dulo Consultas y derivaci?n."""
+"""Rutas del módulo Consultas y derivación."""
 from datetime import date
 from decimal import Decimal
 
@@ -47,12 +47,12 @@ def _verificar_consulta_propia(db: Session, consulta_id: int, usuario: Usuario) 
     response_model=ConsultaRespuesta,
     status_code=status.HTTP_201_CREATED,
     tags=["Consultas"],
-    summary="Registrar una atenci?n",
+    summary="Registrar una atención",
     description=(
         "Registra una consulta y devuelve las vacunas obligatorias pendientes de la "
-        "mascota. El costo se env?a como texto con dos decimales, por ejemplo \"100.00\". "
-        "Errores: 404 si no existen la cl?nica, el veterinario o la mascota; "
-        "422 si la fecha es futura o el costo no es v?lido."
+        "mascota. El costo se envía como texto con dos decimales, por ejemplo \"100.00\". "
+        "Errores: 404 si no existen el veterinario o la mascota; "
+        "422 si la fecha es futura o el costo no es válido."
     ),
 )
 def crear_consulta(
@@ -60,7 +60,7 @@ def crear_consulta(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> ConsultaRespuesta:
-    """E36: registra una atenci?n y avisa las vacunas obligatorias pendientes."""
+    """E36: registra una atención y avisa las vacunas obligatorias pendientes."""
     verificar_propio(usuario, datos.veterinario_id)
     consulta, pendientes = ConsultaService(db).crear(datos)
     respuesta = ConsultaRespuesta.model_validate(consulta)
@@ -77,9 +77,9 @@ def crear_consulta(
     tags=["Consultas"],
     summary="Listar consultas con filtros",
     description=(
-        "Lista consultas con filtros combinables de cl?nica, fecha, mascota, "
+        "Lista consultas con filtros combinables de clínica, fecha, mascota, "
         "veterinario y presencia de muestras. "
-        "Sin errores de dominio: sin resultados devuelve 200 con lista vac?a."
+        "Sin errores de dominio: sin resultados devuelve 200 con lista vacía."
     ),
 )
 def listar_consultas(
@@ -127,9 +127,9 @@ def obtener_consulta(
     tags=["Consultas"],
     summary="Registrar una muestra de una consulta",
     description=(
-        "Crea una muestra en estado Extraida, asociada a la consulta y a su cl?nica de origen. "
+        "Crea una muestra en estado Extraida, asociada a la consulta y a su clínica de origen. "
         "Errores: 404 si no existen la consulta o el tipo de muestra; "
-        "422 si el tipo de muestra no es v?lido."
+        "422 si el tipo de muestra no es válido."
     ),
 )
 def registrar_muestra(
@@ -168,9 +168,9 @@ def listar_muestras(
     response_class=Response,
     responses=_respuesta_pdf(),
     tags=["Consultas"],
-    summary="Descargar la orden de derivaci?n",
+    summary="Descargar la orden de derivación",
     description=(
-        "Genera en PDF la orden de derivaci?n con las muestras de la consulta. "
+        "Genera en PDF la orden de derivación con las muestras de la consulta. "
         "Errores: 404 si no existe la consulta; 409 si no tiene muestras para derivar."
     ),
 )
@@ -179,7 +179,7 @@ def descargar_orden_derivacion(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> Response:
-    """E41: descarga la orden de derivaci?n en PDF (409 si no hay muestras)."""
+    """E41: descarga la orden de derivación en PDF (409 si no hay muestras)."""
     _verificar_consulta_propia(db, consulta_id, usuario)
     contenido = ConsultaService(db).orden_derivacion(consulta_id)
     return Response(
@@ -198,9 +198,9 @@ def descargar_orden_derivacion(
     response_class=Response,
     responses=_respuesta_pdf(),
     tags=["Consultas"],
-    summary="Descargar el comprobante de atenci?n",
+    summary="Descargar el comprobante de atención",
     description=(
-        "Genera en PDF el comprobante de la atenci?n. "
+        "Genera en PDF el comprobante de la atención. "
         "Errores: 404 si no existe la consulta."
     ),
 )
@@ -209,7 +209,7 @@ def descargar_comprobante(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> Response:
-    """E42: descarga el comprobante de atenci?n en PDF."""
+    """E42: descarga el comprobante de atención en PDF."""
     _verificar_consulta_propia(db, consulta_id, usuario)
     contenido = ConsultaService(db).comprobante(consulta_id)
     return Response(
@@ -227,7 +227,7 @@ def descargar_comprobante(
     tags=["Consultas"],
     summary="Calcular el costo total de una consulta",
     description=(
-        "Suma el costo de la consulta y el an?lisis de cada muestra. "
+        "Suma el costo de la consulta y el análisis de cada muestra. "
         "El total se serializa como texto con dos decimales. "
         "Errores: 404 si no existe la consulta."
     ),
@@ -237,6 +237,6 @@ def obtener_costo_total(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> dict[str, Decimal]:
-    """E43: devuelve consulta + an?lisis de muestras, como Decimal."""
+    """E43: devuelve consulta + análisis de muestras, como Decimal."""
     _verificar_consulta_propia(db, consulta_id, usuario)
     return {"costo_total": ConsultaService(db).costo_total(consulta_id)}

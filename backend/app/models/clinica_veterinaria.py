@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
@@ -16,6 +16,7 @@ class ClinicaVeterinaria(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     red_id: Mapped[int] = mapped_column(ForeignKey("red_veterinaria.id"))
     nombre: Mapped[str] = mapped_column(String(100))
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
     red: Mapped["RedVeterinaria"] = relationship(back_populates="clinicas")
     veterinarios: Mapped[list["Veterinario"]] = relationship(back_populates="clinica")

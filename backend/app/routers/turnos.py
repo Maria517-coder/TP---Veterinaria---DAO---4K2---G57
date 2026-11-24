@@ -1,5 +1,5 @@
-"""Rutas del m?dulo Agenda y turnos.
-Este m?dulo agrupa varios recursos: no tiene prefijo y las rutas se declaran completas."""
+"""Rutas del módulo Agenda y turnos.
+Este módulo agrupa varios recursos: no tiene prefijo y las rutas se declaran completas."""
 from datetime import date
 from typing import Annotated
 
@@ -66,8 +66,8 @@ def listar_agenda(
     tags=["Turnos y agenda"],
     summary="Consultar disponibilidad de un intervalo",
     description=(
-        "Indica si el intervalo est? libre antes de reservar, sin crear el turno. "
-        "Errores: 404 si no existe el veterinario; 422 si el rango de fechas es inv?lido."
+        "Indica si el intervalo está libre antes de reservar, sin crear el turno. "
+        "Errores: 404 si no existe el veterinario; 422 si el rango de fechas es inválido."
     ),
 )
 def consultar_disponibilidad(
@@ -76,7 +76,7 @@ def consultar_disponibilidad(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> dict[str, bool]:
-    """Indica si el intervalo est? libre antes de reservar (E34)."""
+    """Indica si el intervalo está libre antes de reservar (E34)."""
     verificar_propio(usuario, id)
     disponible = TurnoService(db).consultar_disponibilidad(id, datos)
     return {"disponible": disponible}
@@ -88,7 +88,7 @@ def consultar_disponibilidad(
     tags=["Turnos y agenda"],
     summary="Cancelar un turno",
     description=(
-        "Cancela un turno con baja l?gica: deja de contar para la agenda. "
+        "Cancela un turno con baja lógica: deja de contar para la agenda. "
         "Errores: 404 si no existe el turno."
     ),
 )
@@ -97,7 +97,7 @@ def cancelar_turno(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual),
 ) -> None:
-    """Cancela un turno con baja l?gica (E35)."""
+    """Cancela un turno con baja lógica (E35)."""
     turno = TurnoService(db).repository.buscar_por_id(id)
     if turno is None:
         from app.exceptions import RecursoNoEncontrado

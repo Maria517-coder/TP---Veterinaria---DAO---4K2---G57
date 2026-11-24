@@ -9,7 +9,7 @@ TAGS = {
     "Consultas", "Muestras", "Contenedores", "Remitos", "Reportes",
 }
 
-# Cada ruta de los 68 endpoints de routers queda bajo una sola tag funcional.
+# Cada ruta de los endpoints de routers queda bajo una sola tag funcional.
 TAGS_POR_PATH = {
     "/api/auth/login": "Autenticación",
     "/api/auth/yo": "Autenticación",
@@ -120,7 +120,7 @@ def test_tags_funcionales_tienen_descripcion(client) -> None:
 def test_los_68_endpoints_tienen_summary_tag_y_descripcion(client) -> None:
     operaciones = _operaciones_de_routers(_esquema(client))
 
-    assert len(operaciones) == 68
+    assert len(operaciones) == 69
     for clave, operacion in operaciones.items():
         metodo, path = clave.split(" ", 1)
         assert operacion.get("summary", "").strip(), clave

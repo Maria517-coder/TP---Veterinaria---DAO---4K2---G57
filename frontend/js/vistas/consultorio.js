@@ -1,5 +1,5 @@
 /* R4: Consultorio - registrar consulta, muestras, PDFs y ficha consulta. */
-import { api, descargarPdf, esVeterinario, obtenerVeterinarioId } from "../api.js";
+import { api, descargarPdf, esVeterinario, obtenerClinicaId, obtenerVeterinarioId } from "../api.js";
 import { cargarCatalogos, cargarVeterinarios, obtenerEstado } from "../estado.js";
 import {
   agregarBoton, campo, crearElemento, crearTarjeta, entradaTexto, etiquetaEstado,
@@ -24,7 +24,7 @@ export async function montarConsultorio() {
   const miVetId = obtenerVeterinarioId();
 
   const form = crearTarjeta("Nueva consulta");
-  const selClinica = selectOpciones(clinicas, { placeholder: "Seleccionar cl?nica..." }); selClinica.id = "con-clinica";
+  const selClinica = selectOpciones(clinicas, { placeholder: "Seleccionar clínica..." }); selClinica.id = "con-clinica";
   const selVet = selectOpciones([], { placeholder: "Seleccionar veterinario..." }); selVet.id = "con-vet";
   const selCliente = selectOpciones(clientes, { placeholder: "Seleccionar cliente...", texto: (c) => `${c.nombre} (${c.telefono})` }); selCliente.id = "con-cliente";
   const selMascota = selectOpciones([], { placeholder: "Seleccionar mascota..." }); selMascota.id = "con-mascota";
@@ -34,12 +34,10 @@ export async function montarConsultorio() {
 
     if (esVet && miVetId) {
     try {
-      const yo = await api("/auth/yo");
-      let miClinicaId = null;
-      for (const c of clinicas) {
-        const vets = await api(`/clinicas/${c.id}/veterinarios`);
-        const mio = vets.find((v) => v.id === miVetId);
-        if (mio) { miClinicaId = c.id; break; }
+      let miClinicaId = obtenerClinicaId();
+      if (!miClinicaId) {
+        const yo = await api("/auth/yo");
+        miClinicaId = yo.clinica_id ?? null;
       }
       if (miClinicaId) {
         selClinica.value = String(miClinicaId);
@@ -49,11 +47,11 @@ export async function montarConsultorio() {
         selVet.value = String(miVetId);
         selVet.disabled = true;
       }
-    } catch (_e) { /* la protecci?n real es del backend */ }
+    } catch (_e) { /* la protección real es del backend */ }
   }
 
   const g1 = crearElemento("div", "", "grilla-2");
-  g1.appendChild(campo("Cl?nica", selClinica, selClinica.id));
+  g1.appendChild(campo("Clínica", selClinica, selClinica.id));
   g1.appendChild(campo("Veterinario", selVet, selVet.id));
   g1.appendChild(campo("Cliente", selCliente, selCliente.id));
   g1.appendChild(campo("Mascota", selMascota, selMascota.id));

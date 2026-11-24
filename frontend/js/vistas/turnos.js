@@ -1,5 +1,5 @@
-﻿/* R5: Turnos - agenda, disponibilidad, crear y cancelar. */
-import { api, esVeterinario, obtenerVeterinarioId } from "../api.js";
+/* R5: Turnos - agenda, disponibilidad, crear y cancelar. */
+import { api, esVeterinario, obtenerClinicaId, obtenerVeterinarioId } from "../api.js";
 import { cargarCatalogos, cargarVeterinarios, obtenerEstado } from "../estado.js";
 import {
   agregarBoton, campo, crearElemento, crearTarjeta, entradaTexto, formatearFechaHora,
@@ -34,11 +34,10 @@ export async function montarTurnos() {
 
   if (esVet && miVetId) {
     try {
-      let miClinicaId = null;
-      for (const c of clinicas) {
-        const vets = await api(`/clinicas/${c.id}/veterinarios`);
-        const mio = vets.find((v) => v.id === miVetId);
-        if (mio) { miClinicaId = c.id; break; }
+      let miClinicaId = obtenerClinicaId();
+      if (!miClinicaId) {
+        const yo = await api("/auth/yo");
+        miClinicaId = yo.clinica_id ?? null;
       }
       if (miClinicaId) {
         selClinica.value = String(miClinicaId);
@@ -48,7 +47,7 @@ export async function montarTurnos() {
         selVet.value = String(miVetId);
         selVet.disabled = true;
       }
-    } catch (_e) { /* protecci?n real en backend */ }
+    } catch (_e) { /* protección real en backend */ }
   }
 
   const filaSel = crearElemento("div", "", "grilla-3");

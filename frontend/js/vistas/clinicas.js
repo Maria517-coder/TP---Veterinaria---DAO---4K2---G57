@@ -72,9 +72,22 @@ export async function montarClinicaDetalle({ params }) {
   try {
     const clinica = await api(`/clinicas/${id}`);
     const cabecera = crearElemento("section", "", "bloque-intro");
-    cabecera.appendChild(vinculo("← Volver a clínicas", "#/clinicas"));
+    cabecera.appendChild(vinculo("? Volver a clínicas", "#/clinicas"));
     cabecera.appendChild(crearElemento("h2", `Clínica: ${clinica.nombre}`));
-    cabecera.appendChild(crearElemento("p", `ID ${clinica.id} · Red ${clinica.red_id}`, "texto-secundario"));
+    cabecera.appendChild(crearElemento("p", `ID ${clinica.id} ? Red ${clinica.red_id}`, "texto-secundario"));
+    if (esAdmin()) {
+      const accionesCab = crearElemento("div", "", "bloque-acciones");
+      agregarBoton(accionesCab, "Dar de baja", async () => {
+        if (!window.confirm(`?Dar de baja la clínica "${clinica.nombre}"?`)) return;
+        try {
+          await api(`/clinicas/${clinica.id}`, { method: "DELETE" });
+          window.location.hash = "#/clinicas";
+        } catch (error) {
+          mensaje(mensajes, error.message, "error");
+        }
+      }, "boton boton-peligro");
+      cabecera.appendChild(accionesCab);
+    }
     app.appendChild(cabecera);
     app.appendChild(mensajes);
 
@@ -100,16 +113,16 @@ async function tabVeterinarios(panel, clinica, mensajesGlobal) {
     form.appendChild(crearElemento("h3", "Agregar veterinario"));
     const fila = crearElemento("div", "", "fila");
     const matricula = entradaTexto("MP-1234"); matricula.id = `mat-${clinica.id}`;
-    const nombre = entradaTexto("Dra. Ana P?rez"); nombre.id = `nom-vet-${clinica.id}`;
-    fila.appendChild(campo("Matr?cula", matricula, matricula.id));
+    const nombre = entradaTexto("Dra. Ana Pérez"); nombre.id = `nom-vet-${clinica.id}`;
+    fila.appendChild(campo("Matrícula", matricula, matricula.id));
     fila.appendChild(campo("Nombre", nombre, nombre.id));
     form.appendChild(fila);
 
     const filaAcceso = crearElemento("div", "", "fila");
     const usuarioVet = entradaTexto("Usuario (opcional)"); usuarioVet.id = `usr-vet-${clinica.id}`;
-    const passVet = entradaTexto("Contrase?a (opcional)", "password"); passVet.id = `pass-vet-${clinica.id}`;
+    const passVet = entradaTexto("Contraseña (opcional)", "password"); passVet.id = `pass-vet-${clinica.id}`;
     filaAcceso.appendChild(campo("Usuario de acceso (opcional)", usuarioVet, usuarioVet.id));
-    filaAcceso.appendChild(campo("Contrase?a de acceso (opcional)", passVet, passVet.id));
+    filaAcceso.appendChild(campo("Contraseña de acceso (opcional)", passVet, passVet.id));
     form.appendChild(filaAcceso);
 
     const acciones = crearElemento("div", "", "bloque-acciones");
