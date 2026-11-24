@@ -1,5 +1,5 @@
 /* R4: Consultorio - registrar consulta, muestras, PDFs y ficha consulta. */
-import { api, descargarPdf } from "../api.js";
+import { api, descargarPdf, esVeterinario, obtenerClinicaId, obtenerVeterinarioId } from "../api.js";
 import { cargarCatalogos, cargarVeterinarios, obtenerEstado } from "../estado.js";
 import {
   agregarBoton, campo, crearElemento, crearTarjeta, entradaTexto, etiquetaEstado,
@@ -11,7 +11,7 @@ export async function montarConsultorio() {
   limpiar(app);
   const intro = crearElemento("section", "", "bloque-intro");
   intro.appendChild(crearElemento("h2", "Consultorio"));
-  intro.appendChild(crearElemento("p", "Registrá la consulta paso a paso. Usá selectores, no IDs manuales.", "texto-secundario"));
+  intro.appendChild(crearElemento("p", "Registr? la consulta paso a paso. Us? selectores, no IDs manuales.", "texto-secundario"));
   app.appendChild(intro);
   const mensajes = crearElemento("div");
   app.appendChild(mensajes);
@@ -20,14 +20,35 @@ export async function montarConsultorio() {
   const { clinicas, tiposMuestra } = obtenerEstado();
   const clientes = await api("/clientes");
 
+  const esVet = esVeterinario();
+  const miVetId = obtenerVeterinarioId();
+
   const form = crearTarjeta("Nueva consulta");
-  const selClinica = selectOpciones(clinicas, { placeholder: "Seleccionar clínica…" }); selClinica.id = "con-clinica";
-  const selVet = selectOpciones([], { placeholder: "Seleccionar veterinario…" }); selVet.id = "con-vet";
-  const selCliente = selectOpciones(clientes, { placeholder: "Seleccionar cliente…", texto: (c) => `${c.nombre} (${c.telefono})` }); selCliente.id = "con-cliente";
-  const selMascota = selectOpciones([], { placeholder: "Seleccionar mascota…" }); selMascota.id = "con-mascota";
+  const selClinica = selectOpciones(clinicas, { placeholder: "Seleccionar clínica..." }); selClinica.id = "con-clinica";
+  const selVet = selectOpciones([], { placeholder: "Seleccionar veterinario..." }); selVet.id = "con-vet";
+  const selCliente = selectOpciones(clientes, { placeholder: "Seleccionar cliente...", texto: (c) => `${c.nombre} (${c.telefono})` }); selCliente.id = "con-cliente";
+  const selMascota = selectOpciones([], { placeholder: "Seleccionar mascota..." }); selMascota.id = "con-mascota";
   const fecha = entradaTexto("", "date"); fecha.id = "con-fecha";
-  const selComplejidad = selectOpciones([{ id: "BAJA", nombre: "BAJA" }, { id: "MEDIA", nombre: "MEDIA" }, { id: "ALTA", nombre: "ALTA" }], { placeholder: "Seleccionar complejidad…", valor: "id", texto: "nombre" }); selComplejidad.id = "con-complejidad";
+  const selComplejidad = selectOpciones([{ id: "BAJA", nombre: "BAJA" }, { id: "MEDIA", nombre: "MEDIA" }, { id: "ALTA", nombre: "ALTA" }], { placeholder: "Seleccionar complejidad...", valor: "id", texto: "nombre" }); selComplejidad.id = "con-complejidad";
   const costo = entradaTexto("100.00"); costo.id = "con-costo";
+
+    if (esVet && miVetId) {
+    try {
+      let miClinicaId = obtenerClinicaId();
+      if (!miClinicaId) {
+        const yo = await api("/auth/yo");
+        miClinicaId = yo.clinica_id ?? null;
+      }
+      if (miClinicaId) {
+        selClinica.value = String(miClinicaId);
+        selClinica.disabled = true;
+        const vets = await cargarVeterinarios(miClinicaId);
+        llenarSelect(selVet, vets, { placeholder: "Seleccionar veterinario...", texto: (v) => `${v.nombre} (${v.matricula})` });
+        selVet.value = String(miVetId);
+        selVet.disabled = true;
+      }
+    } catch (_e) { /* la protección real es del backend */ }
+  }
 
   const g1 = crearElemento("div", "", "grilla-2");
   g1.appendChild(campo("Clínica", selClinica, selClinica.id));

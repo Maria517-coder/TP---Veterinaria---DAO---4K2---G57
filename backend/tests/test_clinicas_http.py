@@ -379,7 +379,7 @@ def test_e31_inexistente_da_404(client: TestClient) -> None:
 
 
 def test_openapi_expone_los_12_endpoints(client: TestClient) -> None:
-    """Los 12 IDs del Excel aparecen como operaciones bajo /api."""
+    """Los endpoints de red, clínicas, veterinarios y tipos de muestra aparecen bajo /api."""
     rutas = [
         "/api/red",
         "/api/red/clinicas",
@@ -401,4 +401,4 @@ def test_openapi_expone_los_12_endpoints(client: TestClient) -> None:
         )
         for ruta in rutas
     )
-    assert total == 12
+    assert total == 13

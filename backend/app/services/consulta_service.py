@@ -29,6 +29,8 @@ class ConsultaService:
         veterinario = self.clinicas.buscar_veterinario_por_id(datos.veterinario_id)
         if veterinario is None:
             raise RecursoNoEncontrado(f"No existe el veterinario {datos.veterinario_id}")
+        if self.clinicas.buscar_clinica_por_id(veterinario.clinica_id) is None:
+            raise RecursoNoEncontrado(f"No existe la clínica {veterinario.clinica_id}")
         mascota = self.mascotas.buscar_por_id(datos.mascota_id)
         if mascota is None:
             raise RecursoNoEncontrado(f"No existe la mascota {datos.mascota_id}")

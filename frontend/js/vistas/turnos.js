@@ -1,5 +1,5 @@
-﻿/* R5: Turnos - agenda, disponibilidad, crear y cancelar. */
-import { api } from "../api.js";
+/* R5: Turnos - agenda, disponibilidad, crear y cancelar. */
+import { api, esVeterinario, obtenerClinicaId, obtenerVeterinarioId } from "../api.js";
 import { cargarCatalogos, cargarVeterinarios, obtenerEstado } from "../estado.js";
 import {
   agregarBoton, campo, crearElemento, crearTarjeta, entradaTexto, formatearFechaHora,
@@ -21,6 +21,8 @@ export async function montarTurnos() {
   await cargarCatalogos();
   const { clinicas } = obtenerEstado();
   const clientes = await api("/clientes");
+  const esVet = esVeterinario();
+  const miVetId = obtenerVeterinarioId();
 
   const tarjetaSel = crearTarjeta("Seleccionar veterinario");
   const selClinica = selectOpciones(clinicas, { placeholder: "Seleccionar clínica…" });
@@ -29,6 +31,25 @@ export async function montarTurnos() {
   selVet.id = "turno-vet";
   const fechaAgenda = entradaTexto("", "date");
   fechaAgenda.id = "turno-fecha-agenda";
+
+  if (esVet && miVetId) {
+    try {
+      let miClinicaId = obtenerClinicaId();
+      if (!miClinicaId) {
+        const yo = await api("/auth/yo");
+        miClinicaId = yo.clinica_id ?? null;
+      }
+      if (miClinicaId) {
+        selClinica.value = String(miClinicaId);
+        selClinica.disabled = true;
+        const vets = await cargarVeterinarios(miClinicaId);
+        llenarSelect(selVet, vets, { placeholder: "Seleccionar veterinario.", texto: (v) => `${v.nombre} (${v.matricula})` });
+        selVet.value = String(miVetId);
+        selVet.disabled = true;
+      }
+    } catch (_e) { /* protección real en backend */ }
+  }
+
   const filaSel = crearElemento("div", "", "grilla-3");
   filaSel.appendChild(campo("Clínica", selClinica, selClinica.id));
   filaSel.appendChild(campo("Veterinario", selVet, selVet.id));
@@ -165,5 +186,9 @@ export async function montarTurnos() {
     }
   });
 
-  textoOVacio(contAgenda, "Seleccioná un veterinario para ver su agenda.");
+  if (esVet && miVetId) {
+    cargarAgenda().catch((e) => mensaje(mensajes, e.message, "error"));
+  } else {
+    textoOVacio(contAgenda, "Seleccion? un veterinario para ver su agenda.");
+  }
 }

@@ -16,7 +16,8 @@ export async function montarRecepcion() {
 
   const grilla = crearElemento("div", "", "grilla-2");
   grilla.appendChild(formCliente(mensajes, () => Promise.all([listarClientes(), listarMascotas()])));
-  grilla.appendChild(formMascota(mensajes, () => listarMascotas()));
+  const tarjetaMascota = formMascota(mensajes, () => listarMascotas());
+  grilla.appendChild(tarjetaMascota);
   app.appendChild(grilla);
   app.appendChild(formVacuna(mensajes));
 
@@ -73,7 +74,7 @@ export async function montarRecepcion() {
   }
 
   buscador.addEventListener("input", renderMascotas);
-  const selectClienteMascota = formMascota._selectCliente;
+  const selectClienteMascota = tarjetaMascota._selectCliente;
   function refrescarSelectClientes() {
     llenarSelect(selectClienteMascota, clientesCache, { placeholder: "Seleccionar cliente…" , texto: (c) => `${c.nombre} (${c.telefono})` });
   }

@@ -164,6 +164,12 @@ textarea {
 
 textarea { min-height: 96px; resize: vertical; }
 
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  flex: 0 0 auto;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -313,7 +319,7 @@ th { font-size: 0.85rem; color: var(--texto-secundario); font-weight: 600; backg
 .tarjeta + .tarjeta { margin-top: 20px; }
 
 
-/* Sesi?n y login */
+/* Sesión y login */
 .sesion-sidebar { margin-top: 24px; padding: 16px 12px 0; border-top: 1px solid rgba(232,241,237,0.15); }
 .sesion-sidebar.oculto { display: none; }
 .sesion-info { margin: 0 0 12px; font-size: 0.9rem; color: var(--sidebar-texto); }

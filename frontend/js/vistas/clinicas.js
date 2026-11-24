@@ -72,9 +72,22 @@ export async function montarClinicaDetalle({ params }) {
   try {
     const clinica = await api(`/clinicas/${id}`);
     const cabecera = crearElemento("section", "", "bloque-intro");
-    cabecera.appendChild(vinculo("← Volver a clínicas", "#/clinicas"));
+    cabecera.appendChild(vinculo("? Volver a clínicas", "#/clinicas"));
     cabecera.appendChild(crearElemento("h2", `Clínica: ${clinica.nombre}`));
-    cabecera.appendChild(crearElemento("p", `ID ${clinica.id} · Red ${clinica.red_id}`, "texto-secundario"));
+    cabecera.appendChild(crearElemento("p", `ID ${clinica.id} ? Red ${clinica.red_id}`, "texto-secundario"));
+    if (esAdmin()) {
+      const accionesCab = crearElemento("div", "", "bloque-acciones");
+      agregarBoton(accionesCab, "Dar de baja", async () => {
+        if (!window.confirm(`?Dar de baja la clínica "${clinica.nombre}"?`)) return;
+        try {
+          await api(`/clinicas/${clinica.id}`, { method: "DELETE" });
+          window.location.hash = "#/clinicas";
+        } catch (error) {
+          mensaje(mensajes, error.message, "error");
+        }
+      }, "boton boton-peligro");
+      cabecera.appendChild(accionesCab);
+    }
     app.appendChild(cabecera);
     app.appendChild(mensajes);
 
@@ -104,13 +117,25 @@ async function tabVeterinarios(panel, clinica, mensajesGlobal) {
     fila.appendChild(campo("Matrícula", matricula, matricula.id));
     fila.appendChild(campo("Nombre", nombre, nombre.id));
     form.appendChild(fila);
+
+    const filaAcceso = crearElemento("div", "", "fila");
+    const usuarioVet = entradaTexto("Usuario (opcional)"); usuarioVet.id = `usr-vet-${clinica.id}`;
+    const passVet = entradaTexto("Contraseña (opcional)", "password"); passVet.id = `pass-vet-${clinica.id}`;
+    filaAcceso.appendChild(campo("Usuario de acceso (opcional)", usuarioVet, usuarioVet.id));
+    filaAcceso.appendChild(campo("Contraseña de acceso (opcional)", passVet, passVet.id));
+    form.appendChild(filaAcceso);
+
     const acciones = crearElemento("div", "", "bloque-acciones");
     agregarBoton(acciones, "Agregar veterinario", async () => {
       try {
-        await api(`/clinicas/${clinica.id}/veterinarios`, {
-          method: "POST", body: { matricula: matricula.value, nombre: nombre.value },
-        });
-        matricula.value = ""; nombre.value = "";
+        const body = { matricula: matricula.value, nombre: nombre.value };
+        const usr = usuarioVet.value.trim();
+        const pwd = passVet.value;
+        if (usr || pwd) {
+          body.acceso = { nombre_usuario: usr, contrasena: pwd };
+        }
+        await api(`/clinicas/${clinica.id}/veterinarios`, { method: "POST", body });
+        matricula.value = ""; nombre.value = ""; usuarioVet.value = ""; passVet.value = "";
         mensaje(localMsg, "Veterinario agregado.", "ok");
         await listar();
       } catch (error) { mensaje(localMsg, error.message, "error"); }

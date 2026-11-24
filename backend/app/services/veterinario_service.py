@@ -1,10 +1,14 @@
 """Casos de uso del módulo Veterinarios."""
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.exceptions import ConflictoDeRecurso, RecursoNoEncontrado
+from app.models.usuario import RolUsuario, Usuario
 from app.models.veterinario import Veterinario
 from app.repositories.clinica_repository import ClinicaRepository
+from app.schemas.auth import UsuarioCrear
 from app.schemas.veterinario import VeterinarioActualizar, VeterinarioCrear
+from app.services.usuario_service import UsuarioService
 
 
 class VeterinarioService:
@@ -17,7 +21,7 @@ class VeterinarioService:
     def crear_en_clinica(
         self, clinica_id: int, datos: VeterinarioCrear
     ) -> Veterinario:
-        """E25: alta en la clínica; la Agenda no requiere persistencia propia."""
+        """E25: alta en la clínica; con acceso opcional crea veterinario y usuario en la misma transacción."""
         clinica = self.repository.buscar_clinica_por_id(clinica_id)
         if clinica is None:
             raise RecursoNoEncontrado(f"No existe la clínica {clinica_id}")
@@ -27,7 +31,25 @@ class VeterinarioService:
             matricula=datos.matricula,
             nombre=datos.nombre,
         )
-        return self._persistir(veterinario)
+        try:
+            self.repository.guardar(veterinario)
+            self.db.flush()
+            if datos.acceso is not None:
+                UsuarioService(self.db).crear(
+                    UsuarioCrear(
+                        nombre_usuario=datos.acceso.nombre_usuario,
+                        contrasena=datos.acceso.contrasena,
+                        rol=RolUsuario.VETERINARIO,
+                        veterinario_id=veterinario.id,
+                    ),
+                    confirmar=False,
+                )
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        self.db.refresh(veterinario)
+        return veterinario
 
     def listar_por_clinica(self, clinica_id: int) -> list[Veterinario]:
         """E26: lista los veterinarios activos de una clínica existente."""
@@ -53,10 +75,21 @@ class VeterinarioService:
         return self._persistir(veterinario)
 
     def eliminar(self, veterinario_id: int) -> None:
-        """E28: baja lógica; la matrícula sigue reservada por la columna unique."""
+        """E28: baja lógica; también desactiva el usuario vinculado para que no pueda iniciar sesión."""
         veterinario = self.obtener(veterinario_id)
-        veterinario.activo = False
-        self._persistir(veterinario)
+        try:
+            veterinario.activo = False
+            self.repository.guardar(veterinario)
+            usuario = self.db.scalar(
+                select(Usuario).where(Usuario.veterinario_id == veterinario_id)
+            )
+            if usuario is not None:
+                usuario.activo = False
+                self.db.add(usuario)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
 
     def _validar_matricula_disponible(
         self, matricula: str, veterinario_id: int | None = None

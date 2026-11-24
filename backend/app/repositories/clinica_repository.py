@@ -19,12 +19,23 @@ class ClinicaRepository:
         return self.db.scalar(select(RedVeterinaria).limit(1))
 
     def listar_clinicas(self) -> list[ClinicaVeterinaria]:
-        """Lista todas las clínicas, ordenadas por id."""
-        return list(self.db.scalars(select(ClinicaVeterinaria).order_by(ClinicaVeterinaria.id)))
+        """Lista las clínicas activas, ordenadas por id."""
+        return list(
+            self.db.scalars(
+                select(ClinicaVeterinaria)
+                .where(ClinicaVeterinaria.activo.is_(True))
+                .order_by(ClinicaVeterinaria.id)
+            )
+        )
 
     def buscar_clinica_por_id(self, clinica_id: int) -> ClinicaVeterinaria | None:
-        """Devuelve la clínica con ese id, o None si no existe."""
-        return self.db.get(ClinicaVeterinaria, clinica_id)
+        """Devuelve la clínica activa con ese id, o None si no existe o está inactiva."""
+        return self.db.scalar(
+            select(ClinicaVeterinaria).where(
+                ClinicaVeterinaria.id == clinica_id,
+                ClinicaVeterinaria.activo.is_(True),
+            )
+        )
 
     def buscar_clinica_por_nombre(self, nombre: str) -> ClinicaVeterinaria | None:
         """Devuelve la clínica con ese nombre exacto, o None si no existe."""

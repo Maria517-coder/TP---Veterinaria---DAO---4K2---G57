@@ -43,10 +43,11 @@ def test_respuesta_red_solo_id_y_nombre() -> None:
 
 def test_respuesta_clinica_desde_modelo() -> None:
     """La respuesta se arma desde los atributos del modelo."""
-    clinica = ClinicaVeterinaria(id=2, red_id=1, nombre="Centro")
+    clinica = ClinicaVeterinaria(id=2, red_id=1, nombre="Centro", activo=True)
 
     assert ClinicaVeterinariaRespuesta.model_validate(clinica).model_dump() == {
         "id": 2,
         "nombre": "Centro",
         "red_id": 1,
+        "activo": True,
     }

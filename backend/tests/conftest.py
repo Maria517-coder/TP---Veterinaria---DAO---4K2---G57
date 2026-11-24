@@ -1,4 +1,4 @@
-"""Configuraci��n de pytest: usa una base SQLite aparte para los tests."""
+"""Configuración de pytest: usa una base SQLite aparte para los tests."""
 import os
 
 os.environ["DATABASE_URL"] = "sqlite:///./test_veterinaria.sqlite"
@@ -35,7 +35,7 @@ def _autenticar_como_admin() -> Generator[None, None, None]:
 
 @pytest.fixture()
 def db() -> Generator[Session, None, None]:
-    """Entrega una sesi��n sobre una base de test vac��a y la deja limpia al terminar."""
+    """Entrega una sesin sobre una base de test vaca y la deja limpia al terminar."""
     crear_tablas()  # importa app.models y registra todas las tablas en Base.metadata
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

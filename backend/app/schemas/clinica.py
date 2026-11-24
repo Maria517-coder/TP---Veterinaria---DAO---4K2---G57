@@ -37,3 +37,4 @@ class ClinicaVeterinariaRespuesta(BaseModel):
     id: int
     nombre: str
     red_id: int
+    activo: bool

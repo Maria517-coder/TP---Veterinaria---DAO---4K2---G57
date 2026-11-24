@@ -49,6 +49,21 @@ class ClinicaService:
         clinica.nombre = datos.nombre
         return self._persistir(clinica)
 
+    def eliminar(self, clinica_id: int) -> None:
+        """Da de baja lógica una clínica; falla si tiene veterinarios activos."""
+        clinica = self.obtener_clinica(clinica_id)
+        if self.repository.listar_veterinarios_por_clinica(clinica_id):
+            raise ConflictoDeRecurso(
+                "No se puede dar de baja una clínica con veterinarios activos"
+            )
+        try:
+            clinica.activo = False
+            self.repository.guardar(clinica)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
     def _validar_nombre_disponible(
         self, nombre: str, clinica_id: int | None = None
     ) -> None:

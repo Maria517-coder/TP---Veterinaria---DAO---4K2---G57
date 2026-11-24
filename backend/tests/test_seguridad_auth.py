@@ -19,9 +19,27 @@ def client_sin_auth(db):
     # conftest autouse restaurará en su teardown; por seguridad dejamos limpio aquí
 
 
-def _crear_usuario(db, nombre_usuario: str, contrasena: str, rol: RolUsuario, activo: bool = True):
+def _crear_usuario(db, nombre_usuario: str, contrasena: str, rol: RolUsuario, activo: bool = True, veterinario_id=None):
     service = UsuarioService(db)
-    usuario = service.crear(UsuarioCrear(nombre_usuario=nombre_usuario, contrasena=contrasena, rol=rol))
+    if rol == RolUsuario.VETERINARIO and veterinario_id is None:
+        from app.models.clinica_veterinaria import ClinicaVeterinaria
+        from app.models.red_veterinaria import RedVeterinaria
+        from app.models.veterinario import Veterinario
+        red = db.query(RedVeterinaria).first()
+        if red is None:
+            red = RedVeterinaria(nombre="Red Test")
+            db.add(red)
+            db.flush()
+        clinica = db.query(ClinicaVeterinaria).first()
+        if clinica is None:
+            clinica = ClinicaVeterinaria(nombre="Clinica Test", red=red)
+            db.add(clinica)
+            db.flush()
+        vet = Veterinario(matricula=f"MAT-{nombre_usuario}", nombre=f"Vet {nombre_usuario}", clinica_id=clinica.id, activo=True)
+        db.add(vet)
+        db.flush()
+        veterinario_id = vet.id
+    usuario = service.crear(UsuarioCrear(nombre_usuario=nombre_usuario, contrasena=contrasena, rol=rol, veterinario_id=veterinario_id))
     if not activo:
         usuario.activo = False
         db.commit()
@@ -95,10 +113,10 @@ def test_health_y_login_andan_sin_token(client_sin_auth) -> None:
 
 def test_veterinario_no_puede_crear_clinica_ni_veterinario_y_admin_si(db, client_sin_auth) -> None:
     _crear_usuario(db, "admin1", "adminpass", RolUsuario.ADMIN)
-    _crear_usuario(db, "vet1", "vetpass", RolUsuario.VETERINARIO)
+    _crear_usuario(db, "vet1", "vetpass1", RolUsuario.VETERINARIO)
 
     token_admin = _login(client_sin_auth, "admin1", "adminpass").json()["token"]
-    token_vet = _login(client_sin_auth, "vet1", "vetpass").json()["token"]
+    token_vet = _login(client_sin_auth, "vet1", "vetpass1").json()["token"]
 
     r_vet_clinica = client_sin_auth.post(
         "/api/red/clinicas", json={"nombre": "Clinica Vet"}, headers=_auth_header(token_vet)
@@ -135,9 +153,14 @@ def test_respuesta_nunca_incluye_hash(db, client_sin_auth) -> None:
     assert r_yo.status_code == 200
     assert "contrasena_hash" not in r_yo.text
 
+    # crear veterinario para vincular
+    r_clinica = client_sin_auth.post("/api/red/clinicas", json={"nombre": "Clinica Hash"}, headers=headers)
+    clinica_id = r_clinica.json()["id"]
+    r_vet = client_sin_auth.post(f"/api/clinicas/{clinica_id}/veterinarios", json={"matricula": "MAT-HASH", "nombre": "Dr Hash"}, headers=headers)
+    vet_id = r_vet.json()["id"]
     r_crear = client_sin_auth.post(
         "/api/usuarios",
-        json={"nombre_usuario": "otro", "contrasena": "pass1234", "rol": "VETERINARIO"},
+        json={"nombre_usuario": "otro", "contrasena": "pass1234", "rol": "VETERINARIO", "veterinario_id": vet_id},
         headers=headers,
     )
     assert r_crear.status_code == 201

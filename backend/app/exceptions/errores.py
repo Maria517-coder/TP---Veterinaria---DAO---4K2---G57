@@ -29,7 +29,7 @@ class ConflictoDeRecurso(ErrorDeDominio):
     """La operación choca con el estado actual del recurso (HTTP 409)."""
 
 class NoAutenticado(ErrorDeDominio):
-    """Falta token, es inv?lido o expir? (HTTP 401)."""
+    """Falta token, es inválido o expiró (HTTP 401)."""
 
 
 class AccesoProhibido(ErrorDeDominio):

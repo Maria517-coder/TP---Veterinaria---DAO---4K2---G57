@@ -38,11 +38,21 @@ export async function montarLogin() {
         method: "POST",
         body: { usuario: usuario.value, contrasena: contrasena.value },
       });
-      guardarSesion({
+      const sesion = {
         token: respuesta.token,
         rol: respuesta.rol,
         usuario: usuario.value.trim(),
-      });
+        veterinario_id: respuesta.veterinario_id ?? null,
+        clinica_id: null,
+      };
+      guardarSesion(sesion);
+      try {
+        const yo = await api("/auth/yo");
+        sesion.clinica_id = yo.clinica_id ?? null;
+        guardarSesion(sesion);
+      } catch (_e) {
+        // Si /auth/yo falla, la sesión básica igual sirve.
+      }
       window.location.hash = "#/inicio";
     } catch (error) {
       mensaje(mensajes, error.message, "error");

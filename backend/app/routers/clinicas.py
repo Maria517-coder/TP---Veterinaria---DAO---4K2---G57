@@ -81,12 +81,12 @@ def agregar_clinica(
     tags=["Clínicas y veterinarios"],
     summary="Listar las clínicas de la red",
     description=(
-        "Devuelve todas las clínicas de la red. "
+        "Devuelve las clínicas activas de la red. "
         "Sin errores de dominio: sin clínicas devuelve 200 con lista vacía."
     ),
 )
 def listar_clinicas(db: Session = Depends(get_db)) -> list[ClinicaVeterinaria]:
-    """Lista todas las clínicas de la red (E22)."""
+    """Lista las clínicas activas de la red (E22)."""
     return ClinicaService(db).listar_clinicas()
 
 
@@ -96,8 +96,8 @@ def listar_clinicas(db: Session = Depends(get_db)) -> list[ClinicaVeterinaria]:
     tags=["Clínicas y veterinarios"],
     summary="Obtener una clínica por id",
     description=(
-        "Devuelve el detalle de una clínica. "
-        "Errores: 404 si no existe."
+        "Devuelve el detalle de una clínica activa. "
+        "Errores: 404 si no existe o está inactiva."
     ),
 )
 def obtener_clinica(id: int, db: Session = Depends(get_db)) -> ClinicaVeterinaria:
@@ -113,7 +113,7 @@ def obtener_clinica(id: int, db: Session = Depends(get_db)) -> ClinicaVeterinari
     summary="Reemplazar el nombre de una clínica",
     description=(
         "PUT de reemplazo total del nombre de la clínica. "
-        "Errores: 404 si no existe; 409 si el nombre ya está en uso; "
+        "Errores: 404 si no existe o está inactiva; 409 si el nombre ya está en uso; "
         "422 si el nombre no es válido."
     ),
 )
@@ -122,6 +122,23 @@ def actualizar_clinica(
 ) -> ClinicaVeterinaria:
     """Actualiza el nombre de una clínica (E24)."""
     return ClinicaService(db).actualizar_clinica(id, datos)
+
+
+@router.delete(
+    "/clinicas/{id}",
+    dependencies=[Depends(requiere_admin)],
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Clínicas y veterinarios"],
+    summary="Dar de baja una clínica",
+    description=(
+        "Baja lógica: la clínica deja de listarse y no admite operaciones nuevas. "
+        "Errores: 404 si no existe o ya está inactiva; "
+        "409 si tiene veterinarios activos."
+    ),
+)
+def eliminar_clinica(id: int, db: Session = Depends(get_db)) -> None:
+    """Da de baja lógica a una clínica."""
+    ClinicaService(db).eliminar(id)
 
 
 # ================================
@@ -219,6 +236,7 @@ def listar_tipos_muestra(db: Session = Depends(get_db)) -> list[TipoMuestra]:
 
 @router.post(
     "/tipos-muestra",
+    dependencies=[Depends(requiere_admin)],
     response_model=TipoMuestraRespuesta,
     status_code=status.HTTP_201_CREATED,
     tags=["Tipos de muestra"],
@@ -238,6 +256,7 @@ def crear_tipo_muestra(
 
 @router.put(
     "/tipos-muestra/{id}",
+    dependencies=[Depends(requiere_admin)],
     response_model=TipoMuestraRespuesta,
     tags=["Tipos de muestra"],
     summary="Reemplazar un tipo de muestra",

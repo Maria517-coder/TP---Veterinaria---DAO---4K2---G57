@@ -23,7 +23,7 @@ Python 3.11+ (probado con 3.14), FastAPI, Uvicorn, Pydantic v2, SQLAlchemy 2.x (
 
 ## Arquitectura en capas (backend/app/)
 `router → schema → service → repository → model`. Las dependencias bajan, nunca al revés.
-- `routers/`: reciben la petición, validan con `schemas/`, llaman al service. **Sin reglas de negocio ni SQL.** Cada router se registra en `main.py`, **pero solo cuando sus schemas y services existen y tiene tests**. Hoy el de clínicas está sin registrar porque está incompleto: al terminarlo hay que volver a agregarlo.
+- `routers/`: reciben la petici?n, validan con `schemas/`, llaman al service. **Sin reglas de negocio ni SQL.** Cada router se registra en `main.py`, **pero solo cuando sus schemas y services existen y tiene tests**.
 - `schemas/`: Pydantic v2, contrato de entrada y salida. No saben de base de datos.
 - `services/`: orquestan un caso de uso, deciden, lanzan excepciones de dominio y **manejan la transacción** (`commit`/`rollback`).
 - `repositories/`: consultas y guardado. Sin reglas de negocio. **Hacen `flush`, nunca `commit`.** Si algo no existe, devuelven `None`; no lanzan errores.
@@ -48,6 +48,9 @@ Python 3.11+ (probado con 3.14), FastAPI, Uvicorn, Pydantic v2, SQLAlchemy 2.x (
 **Tests:** fixtures `db` (base limpia por test, archivo aparte `test_veterinaria.sqlite`) y `client` (`TestClient` con el `lifespan` activo; siempre con `with`). El repository y el service se prueban directo sobre `db`; el router, por HTTP con `client`.
 
 ## Reglas ya implementadas (NO las pises)
+- **Seguridad:** roles `ADMIN` y `VETERINARIO`, token firmado HMAC (sin estado), dependencia reutilizable `verificar_propio` para limitar acceso al propio `veterinario_id`, y usuarios vinculados a un veterinario (`Usuario.veterinario_id`).
+- **Datos de demo:** `python -m app.seeds.datos_demo` (desde `backend/`) carga datos de ejemplo; es idempotente y **no se ejecuta** al iniciar la app ni en los tests.
+- **Codificaci?n:** todo archivo nuevo o modificado se guarda en **UTF-8 sin BOM**. No usar redirecciones de PowerShell (`>`, `Out-File`, `Set-Content` sin `utf8NoBOM`) para escribir c?digo.
 - **Importes en `Decimal`**, nunca `float`: dos decimales y redondeo `ROUND_HALF_UP` (ver `models/importes.py`; `normalizar_importe` rechaza `float` y `bool`). Los schemas con importes usan `Decimal`. Pydantic serializa `Decimal` como texto en el JSON: verificalo en un test.
 - **El historial de cambios de estado es inmutable**: solo se inserta (triggers de SQLite). No hay endpoints ni métodos que lo modifiquen o borren.
 - **Seeds idempotentes**: insertan solo lo que falta (por nombre) y hacen `flush`; el `commit` lo decide el llamador (`lifespan` en `main.py`).

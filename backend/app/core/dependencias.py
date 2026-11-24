@@ -33,3 +33,13 @@ def requiere_admin(usuario: Usuario = Depends(obtener_usuario_actual)) -> Usuari
     if usuario.rol != RolUsuario.ADMIN.value:
         raise AccesoProhibido("No tenés permisos para realizar esta acción")
     return usuario
+
+
+def verificar_propio(usuario: Usuario, veterinario_id: int) -> None:
+    """VETERINARIO solo puede operar sobre su propio veterinario_id; ADMIN no tiene restricción."""
+    if usuario.rol == RolUsuario.ADMIN.value:
+        return
+    if usuario.veterinario_id != veterinario_id:
+        raise AccesoProhibido(
+            "No tenés permisos para operar sobre la agenda o consultas de otro veterinario"
+        )
