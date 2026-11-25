@@ -260,7 +260,7 @@ async function tabVacunasMascota(panel, historia, mensajesGlobal) {
     const sec = crearElemento("div", "", "seccion");
     sec.appendChild(crearElemento("h3", "Vacunas aplicadas"));
     if (!aplicadas.length) textoOVacio(sec, "No hay vacunaciones registradas.");
-    else sec.appendChild(tabla(["Id", "Vacuna", "Fecha"], aplicadas.map((a) => [a.id, a.vacuna_id, a.fecha])));
+    else sec.appendChild(tabla(["Id", "Vacuna", "Fecha"], aplicadas.map((a) => [a.id, (vacunas.find((v) => v.id === a.vacuna_id) || {}).nombre || a.vacuna_id, a.fecha])));
     panel.appendChild(sec);
   } catch (error) { mensaje(panel, error.message, "error"); }
 }
