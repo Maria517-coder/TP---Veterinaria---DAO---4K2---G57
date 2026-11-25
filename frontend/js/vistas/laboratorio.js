@@ -213,7 +213,7 @@ function formAgregarMuestra(contenedorId, mensajes) {
   cargarOpciones();
   agregarBoton(acciones, "Agregar muestra", async () => {
     try {
-      await api(`/contenedores/${contenedorId}/agregar-muestra`, { method: "POST", body: { muestra_id: Number(sel.value), responsable: responsable.value } });
+      await api(`/contenedores/${contenedorId}/muestras`, { method: "POST", body: { muestra_id: Number(sel.value), responsable: responsable.value } });
       mensaje(mensajes, "Muestra agregada al contenedor.", "ok");
       await montarContenedorDetalle({ params: { id: String(contenedorId) } });
     } catch (e) { mensaje(mensajes, e.message, "error"); }
