@@ -227,7 +227,7 @@ function formGenerarRemito(contenedorId, mensajes) {
   tarjeta.appendChild(campo("Laboratorio destino", destino, destino.id));
   agregarBoton(tarjeta, "Generar remito", async () => {
     try {
-      const remito = await api(`/contenedores/${contenedorId}/remitos`, { method: "POST", body: { laboratorio_destino: destino.value } });
+      const remito = await api(`/contenedores/${contenedorId}/remito`, { method: "POST", body: { laboratorio_destino: destino.value } });
       mensaje(mensajes, `Remito ${remito.numero} generado.`, "ok");
       window.location.hash = `#/remitos/${remito.id}`;
     } catch (e) { mensaje(mensajes, e.message, "error"); }
