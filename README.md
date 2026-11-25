@@ -6,7 +6,7 @@ Sistema para una red de clínicas veterinarias que deriva muestras biológicas a
 
 - **Backend:** Python 3.11+ (probado con 3.14), FastAPI, Uvicorn, Pydantic v2, SQLAlchemy 2.x, SQLite.
 - **Tests:** pytest + httpx.
-- **Frontend:** HTML, CSS y JavaScript puro (servido por FastAPI en `/app/`).
+- **Frontend:** Flet web con acceso desde `/app/`.
 - **Reportes/PDF:** reportlab.
 
 ## Requisitos
@@ -34,6 +34,14 @@ Desde la carpeta `backend/`, con el entorno virtual activado:
 
 ```bash
 python -m uvicorn app.main:app
+```
+
+En una segunda terminal, prepará el entorno de Flet desde la raíz e iniciá el frontend:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\python.exe -m pip install -r frontend/requirements.txt
+.\venv\Scripts\python.exe -m frontend.main
 ```
 
 - Swagger UI: `http://127.0.0.1:8000/docs`

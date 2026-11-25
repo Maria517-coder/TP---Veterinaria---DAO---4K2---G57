@@ -1,47 +1,46 @@
-# Frontend
+# Frontend web con Flet
 
-Frontend mínimo en **HTML + JavaScript puro** (sin frameworks, sin librerías, sin npm), servido por FastAPI en `/app`.
+La aplicación cubre clínicas, recepción, consultorio, turnos, laboratorio y reportes. Cada página Flet usa su propio cliente HTTP para acceder a FastAPI con el token del usuario. El backend decide los permisos, las reglas de negocio y las transacciones.
 
-## Cómo levantar
+## Arranque en Windows
 
-Desde la carpeta `backend/`:
+En una terminal, desde `backend/`, iniciá la API:
 
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn app.main:app
 ```
 
-> **Importante:** no usar `--reload`. El modo reload puede interferir con la base SQLite durante la demo.
+En otra terminal, desde la raíz, prepará el entorno de Flet una vez:
 
-Luego abrir en el navegador:
+```powershell
+python -m venv venv
+.\venv\Scripts\python.exe -m pip install -r frontend/requirements.txt
+```
 
-- Frontend: `http://localhost:8000/app/`
-- Swagger: `http://localhost:8000/docs`
+Iniciá el frontend desde la raíz:
 
-Si el frontend se ve desactualizado, hacer recarga dura con **Ctrl+F5**.
+```powershell
+.\venv\Scripts\python.exe -m frontend.main
+```
 
-## Autenticación
+Abrí [la aplicación](http://localhost:8000/app/). FastAPI redirige al servidor Flet del puerto 8550. Swagger sigue en [/docs](http://localhost:8000/docs) y la versión HTML anterior está en [/app/index.html](http://localhost:8000/app/index.html).
 
-- El sistema exige inicio de sesión. Sin sesión, cualquier ruta redirige a `#/login`.
-- El token se guarda en `sessionStorage` y se envía en `Authorization: Bearer <token>`.
-- Si la API responde 401, el frontend limpia la sesión y vuelve al login.
-- Al iniciar la app (fuera de tests), si no existe, se crea el usuario `admin` con rol `ADMIN`.
-- Contraseña inicial por defecto de desarrollo: `admin123` (o la variable de entorno `ADMIN_PASSWORD`).
-- La clave de firma de tokens sale de `SECRET_KEY` (por defecto de desarrollo). Cambiar ambas en entornos reales.
+En otra instalación, configurá `FLET_PUBLIC_URL` en el proceso del backend con la dirección pública de Flet y `VETERINARIA_API_URL` en el proceso Flet con la URL de la API, incluido `/api/`.
 
-## Estructura
+## Organización
 
-- `index.html`: shell con sidebar, sesión y contenedor `#app`.
-- `css/estilos.css`: estilos del diseño aprobado.
-- `js/api.js`: envoltorio de fetch, auth/sesión, manejo de errores y descarga de PDFs.
-- `js/ui.js`: helpers de DOM (todo texto dinámico con `textContent`).
-- `js/estado.js`: catálogos compartidos (especies hardcodeadas con TODO).
-- `js/router.js`: router por hash con guard de sesión.
-- `js/app.js`: registro de rutas, menú, sesión y arranque.
-- `js/vistas/`: una vista por área funcional, incluyendo `login.js`.
+- `main.py` resuelve el inicio de sesión y la navegación por área o ficha.
+- `api.py` envía el token y procesa respuestas JSON, PDFs, errores y bajas sin contenido.
+- `ui.py` reúne formularios, tablas, navegación y descargas.
+- `vistas/` contiene las pantallas que usan esos controles.
 
-## Notas
+## Pruebas del frontend
 
-- Las especies están hardcodeadas en `js/estado.js` con un `TODO` hasta que el backend exponga `GET /api/especies`.
-- Los turnos de una mascota se cargan bajo demanda con el botón “Cargar turnos”.
-- Para rol `VETERINARIO`, se ocultan botones de alta/edición/baja de clínicas y veterinarios; la protección real es del backend.
-- Los errores del backend se muestran en español; 401/403/409 se muestran visibles en pantalla.
+Desde la raíz, con el entorno Flet:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install pytest
+.\venv\Scripts\python.exe -m pytest -q frontend/tests
+```
+
+La suite de la API se ejecuta desde `backend/` con su propio entorno.

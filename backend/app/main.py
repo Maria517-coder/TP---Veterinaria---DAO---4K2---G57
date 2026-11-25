@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config.database import SessionLocal, crear_tablas
@@ -142,4 +143,19 @@ def health() -> dict[str, str]:
 
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
-app.mount("/app", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
+
+@app.get("/app/", include_in_schema=False)
+def abrir_frontend() -> RedirectResponse:
+    """Abre el servidor Flet configurado para esta instalación."""
+    return RedirectResponse(os.getenv("FLET_PUBLIC_URL", "http://localhost:8550/"))
+
+
+@app.get("/app/index.html", include_in_schema=False)
+def abrir_frontend_clasico() -> FileResponse:
+    """Conserva el acceso explícito a la interfaz anterior."""
+    return FileResponse(FRONTEND_DIR / "index.html")
+
+
+for carpeta in ("js", "css"):
+    app.mount(f"/app/{carpeta}", StaticFiles(directory=FRONTEND_DIR / carpeta), name=carpeta)

@@ -1,0 +1,4 @@
+flet[web]==0.86.5
+# flet-web 0.86.5 todavía usa openapi_prefix al crear su servidor.
+fastapi==0.115.12
+httpx==0.28.1

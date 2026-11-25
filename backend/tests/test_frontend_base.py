@@ -30,8 +30,15 @@ HASHES_MENU = (
 )
 
 
-def test_el_frontend_esta_servido_bajo_app(client) -> None:
-    respuesta = client.get("/app/")
+def test_app_abre_el_frontend_flet(client, monkeypatch) -> None:
+    monkeypatch.setenv("FLET_PUBLIC_URL", "http://localhost:8550/")
+    respuesta = client.get("/app/", follow_redirects=False)
+    assert respuesta.status_code == 307
+    assert respuesta.headers["location"] == "http://localhost:8550/"
+
+
+def test_el_frontend_clasico_esta_servido(client) -> None:
+    respuesta = client.get("/app/index.html")
 
     assert respuesta.status_code == 200
     assert respuesta.headers["content-type"].startswith("text/html")
