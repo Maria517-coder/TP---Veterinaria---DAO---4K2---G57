@@ -303,11 +303,6 @@ th { font-size: 0.85rem; color: var(--texto-secundario); font-weight: 600; backg
 .estado-recibido-remito { background: #CFEBD9; color: #0F5132; }
 .estado-cerrado { background: #0F5132; color: #FFFFFF; }
 
-.panel-pasos { background: #FAFBFA; border: 1px solid var(--borde); border-radius: var(--radio); padding: 16px; margin-top: 16px; }
-.panel-pasos h4 { margin: 0 0 12px; }
-.panel-pasos ol { margin: 0; padding-left: 20px; }
-.panel-pasos li { margin-bottom: 8px; }
-.panel-pasos p { margin: 4px 0 0; color: var(--texto-secundario); font-size: 0.9rem; }
 
 .resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
 .resumen-item { background: #FAFBFA; border: 1px solid var(--borde); border-radius: 8px; padding: 12px; }

@@ -1,4 +1,4 @@
-/* R7: Reportes - 5 reportes con filtros, filas/totales y panel Template Method. */
+/* R7: Reportes - 5 reportes con filtros, filas/totales. */
 import { api } from "../api.js";
 import { cargarCatalogos, obtenerEstado } from "../estado.js";
 import {
@@ -50,8 +50,6 @@ export async function montarReportes() {
   tarjeta.appendChild(acciones);
   tarjeta.appendChild(cont);
   app.appendChild(tarjeta);
-
-  app.appendChild(panelTemplateMethod());
 
   async function generar() {
     limpiar(cont);
@@ -111,35 +109,4 @@ function formatearValor(valor) {
   if (valor === null || valor === undefined || valor === "") return "—";
   if (typeof valor === "object") return JSON.stringify(valor);
   return String(valor);
-}
-
-function panelTemplateMethod() {
-  const tarjeta = crearTarjeta("Cómo se arma un reporte (Template Method)");
-  tarjeta.appendChild(crearElemento(
-    "p",
-    "Todos los reportes comparten la misma estructura base. Cada reporte concreto define sus pasos específicos sin cambiar el flujo general.",
-    "texto-secundario",
-  ));
-
-  const panel = crearElemento("div", "", "panel-pasos");
-  panel.appendChild(crearElemento("h4", "Pasos del método plantilla"));
-  const ol = crearElemento("ol");
-
-  const pasos = [
-    ["Recopilar datos", "El reporte base obtiene los datos necesarios según el filtro recibido."],
-    ["Procesar datos", "Cada reporte concreto calcula sus filas y métricas a partir de esos datos."],
-    ["Formatear reporte", "El resultado se arma con el título, las filas y los totales con nombre."],
-    ["Exportar / devolver resultado", "La API devuelve el resultado como JSON para que la pantalla lo muestre."],
-  ];
-
-  pasos.forEach(([titulo, detalle]) => {
-    const li = crearElemento("li");
-    li.appendChild(crearElemento("strong", titulo));
-    li.appendChild(crearElemento("p", detalle));
-    ol.appendChild(li);
-  });
-
-  panel.appendChild(ol);
-  tarjeta.appendChild(panel);
-  return tarjeta;
 }
