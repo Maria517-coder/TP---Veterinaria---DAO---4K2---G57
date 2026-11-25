@@ -1,4 +1,6 @@
 """Catálogo y vacunaciones por HTTP."""
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -105,3 +107,52 @@ def test_pendientes_historia_inexistente(client: TestClient) -> None:
     respuesta = client.get("/api/historias-clinicas/999999/vacunas-pendientes")
     assert respuesta.status_code == 404
     assert "detalle" in respuesta.json()
+
+
+def _historia_y_vacuna(client: TestClient, db: Session, nombre: str = "Antirrábica") -> tuple[str, dict]:
+    """Prepara una mascota con su historia y una vacuna aplicable a su especie."""
+    duenio = _crear_cliente(client)
+    mascota = _crear_mascota(client, duenio["id"], _especie_id(db))
+    historia = client.get(f"/api/mascotas/{mascota['id']}/historia-clinica").json()
+    vacuna = client.post("/api/vacunas", json={
+        "nombre": nombre, "especies_aplicables": [_especie_id(db)],
+    }).json()
+    return f"/api/historias-clinicas/{historia['id']}/vacunaciones", vacuna
+
+
+def test_vacunacion_con_fecha_futura_se_rechaza(client: TestClient, db: Session) -> None:
+    """No se puede registrar como aplicada una vacuna con fecha posterior a hoy."""
+    ruta, vacuna = _historia_y_vacuna(client, db)
+    manana = (date.today() + timedelta(days=1)).isoformat()
+    respuesta = client.post(ruta, json={"vacuna_id": vacuna["id"], "fecha": manana})
+    assert respuesta.status_code == 422
+    assert "futura" in str(respuesta.json())
+    assert client.get(ruta).json() == []
+
+
+def test_vacunacion_con_fecha_de_hoy_es_valida(client: TestClient, db: Session) -> None:
+    """El límite es inclusivo: hoy se acepta."""
+    ruta, vacuna = _historia_y_vacuna(client, db)
+    respuesta = client.post(ruta, json={"vacuna_id": vacuna["id"], "fecha": date.today().isoformat()})
+    assert respuesta.status_code == 201
+
+
+def test_vacuna_repetida_en_la_misma_historia_se_rechaza(client: TestClient, db: Session) -> None:
+    """Una vacuna ya registrada en la historia no se puede volver a registrar (409)."""
+    ruta, vacuna = _historia_y_vacuna(client, db)
+    assert client.post(ruta, json={"vacuna_id": vacuna["id"], "fecha": "2026-01-01"}).status_code == 201
+    respuesta = client.post(ruta, json={"vacuna_id": vacuna["id"], "fecha": "2026-02-01"})
+    assert respuesta.status_code == 409
+    assert "ya está registrada" in respuesta.json()["detalle"]
+    assert len(client.get(ruta).json()) == 1
+
+
+def test_misma_vacuna_en_historias_distintas_es_valida(client: TestClient, db: Session) -> None:
+    """La unicidad es por historia clínica, no global."""
+    ruta_a, vacuna = _historia_y_vacuna(client, db)
+    duenio = _crear_cliente(client)
+    otra = _crear_mascota(client, duenio["id"], _especie_id(db))
+    historia_b = client.get(f"/api/mascotas/{otra['id']}/historia-clinica").json()
+    ruta_b = f"/api/historias-clinicas/{historia_b['id']}/vacunaciones"
+    assert client.post(ruta_a, json={"vacuna_id": vacuna["id"], "fecha": "2026-01-01"}).status_code == 201
+    assert client.post(ruta_b, json={"vacuna_id": vacuna["id"], "fecha": "2026-01-01"}).status_code == 201

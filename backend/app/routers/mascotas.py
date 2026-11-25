@@ -223,7 +223,8 @@ def listar_consultas_de_historia(
     summary="Registrar una vacunación",
     description=(
         "Registra una dosis aplicada en la historia y actualiza las vacunas pendientes. "
-        "Errores: 404 si no existen la historia o la vacuna; 422 si la fecha es futura."
+        "Errores: 404 si no existen la historia o la vacuna; 422 si la fecha es futura; "
+        "409 si la vacuna ya está registrada en la historia."
     ),
 )
 def registrar_vacunacion(

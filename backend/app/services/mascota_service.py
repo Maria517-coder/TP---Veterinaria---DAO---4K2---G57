@@ -1,7 +1,7 @@
 """Casos de uso del módulo Mascotas, historia clínica y vacunas."""
 from sqlalchemy.orm import Session
 
-from app.exceptions import RecursoNoEncontrado
+from app.exceptions import ConflictoDeRecurso, RecursoNoEncontrado
 from app.models.historia_clinica import HistoriaClinica
 from app.models.consulta_medica import ConsultaMedica
 from app.models.mascota import Mascota
@@ -99,6 +99,10 @@ class MascotaService:
         vacuna = VacunaRepository(self.db).buscar(datos.vacuna_id)
         if vacuna is None:
             raise RecursoNoEncontrado(f"No existe la vacuna {datos.vacuna_id}")
+        if any(a.vacuna_id == vacuna.id for a in historia.aplicaciones):
+            raise ConflictoDeRecurso(
+                f"La vacuna {vacuna.nombre} ya está registrada para esta mascota"
+            )
         try:
             historia.registrar_vacunacion(vacuna, datos.fecha)
             aplicacion = historia.aplicaciones[-1]

@@ -1,6 +1,6 @@
 """Contratos del catálogo de vacunas."""
 from datetime import date
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.schemas.mascota import Nombre
 
@@ -46,6 +46,14 @@ class VacunacionCrear(BaseModel):
 
     vacuna_id: int
     fecha: date
+
+    @field_validator("fecha")
+    @classmethod
+    def no_puede_ser_futura(cls, valor: date) -> date:
+        """Una vacuna solo se registra como aplicada si la fecha no es posterior a hoy."""
+        if valor > date.today():
+            raise ValueError("La fecha de vacunación no puede ser futura")
+        return valor
 
 
 class VacunacionRespuesta(BaseModel):
