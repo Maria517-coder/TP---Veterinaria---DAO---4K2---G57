@@ -251,8 +251,10 @@ export async function montarRemitoDetalle({ params }) {
 
     const tarjeta = crearTarjeta("Detalle del remito");
     const dl = crearElemento("dl", "", "lista-datos");
+    const clinicaOrigen = crearElemento("dd", String(remito.clinica_origen_id));
     [["ID", remito.id], ["Número", remito.numero], ["Estado", remito.estado], ["Destino", remito.laboratorio_destino], ["Clínica origen", remito.clinica_origen_id], ["Contenedor", remito.contenedor_id], ["Emisión", formatearFechaHora(remito.fecha_emision)], ["Despacho", formatearFechaHora(remito.fecha_hora_despacho)], ["Recepción", formatearFechaHora(remito.fecha_hora_recepcion)]].forEach(([k, v]) => {
-      dl.appendChild(crearElemento("dt", k)); dl.appendChild(crearElemento("dd", String(v ?? "—")));
+      dl.appendChild(crearElemento("dt", k));
+      dl.appendChild(k === "Clínica origen" ? clinicaOrigen : crearElemento("dd", String(v ?? "—")));
     });
     tarjeta.appendChild(dl);
 
@@ -297,6 +299,14 @@ export async function montarRemitoDetalle({ params }) {
       else tMuestras.appendChild(tabla(["Id", "Tipo", "Estado", "Fecha", "Ficha"], muestras.map((m) => [m.id, m.tipo_muestra_id, etiquetaEstado(m.estado), m.fecha, vinculo("Ver", `#/muestras/${m.id}`)])));
     } catch (e) { mensaje(tMuestras, e.message, "error"); }
     app.appendChild(tMuestras);
+
+    try {
+      const clinicas = await api("/clinicas");
+      const clinica = clinicas.find((c) => c.id === remito.clinica_origen_id);
+      if (clinica) clinicaOrigen.textContent = `${remito.clinica_origen_id} (${clinica.nombre})`;
+    } catch {
+      // El detalle ya muestra el ID aunque el catálogo no esté disponible.
+    }
   } catch (error) { mensaje(app, error.message, "error"); }
 }
 

@@ -45,7 +45,7 @@ def generar_remito(remito: "RemitoBiologico") -> bytes:
     elementos = [
         Paragraph("Remito biológico", estilos["Title"]),
         Paragraph(f"Remito N.º {remito.numero}", estilos["Heading2"]),
-        Paragraph(f"<b>Estado:</b> {_valor(remito.estado)}", estilos["BodyText"]),
+        Paragraph(f"<b>Estado:</b> {_valor(remito.estado.value)}", estilos["BodyText"]),
         Paragraph(f"<b>Fecha de emisión:</b> {_fecha(remito.fecha_emision)}", estilos["BodyText"]),
         Paragraph(
             f"<b>Clínica de origen:</b> {_valor(remito.clinica_origen.nombre if remito.clinica_origen else remito.clinica_origen_id)}",
